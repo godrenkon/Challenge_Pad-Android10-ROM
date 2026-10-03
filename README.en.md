@@ -32,6 +32,8 @@ The component snapshot is not a complete release manifest or proof of v222 binar
 Japanese input-method integration and real-device locale behavior remain unverified.
 The separate [Japanese IME build](docs/japanese-ime.ja.md) compiles pinned nicoWnnG source
 into a non-debuggable unsigned APK. It is not yet signed, integrated into the ROM or runtime-tested.
+The [actual IME compile and archive checks passed](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37158527674);
+this result does not demonstrate a full Android build or device operation.
 See the Japanese-first [source recipe guide](docs/source-product.ja.md).
 
 The [integrated manifest](manifest/ctz-android10.xml) contains 762 projects: AOSP is pinned to

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "projectCommit": "64f585b7223d769eeaba665cc6c9487eb6e56201",
+  "workflowRun": "https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37158527674",
+  "workflowJobId": 111306870722,
+  "artifact": {
+    "id": 11286850646,
+    "name": "ctz-japanese-ime-unsigned",
+    "digest": "sha256:7859595863739b20276df74ec8fcb40a8ffeec6cea8fe8771e1b86cf4b97cfd7",
+    "createdAt": "2026-10-03T22:29:58Z",
+    "expiresAt": "2026-11-02T22:29:56Z",
+    "url": "https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37158527674/artifacts/11286850646"
+  },
+  "receipt": {
+    "status": "compiled-unsigned",
+    "upstreamRepository": "gorry/nicoWnnG",
+    "upstreamCommit": "f0424c773941441124ca2707a5da7fb4816188df",
+    "profileSHA256": "16a8ac0330ea2d1decc8d6b21e605a5e4a36cbfd8fcea59c8fceea96e4dded3c",
+    "toolSHA256": "078efb16b526fb4c7d7702f0eadd9b97bf7da0becf01612c3d9f398a0478472e",
+    "runtimeTested": false,
+    "romIntegrated": false,
+    "flashReady": false,
+    "patches": {
+      "app/build.gradle": {
+        "beforeBlob": "5befa5f030d591fa35964d3ad1cccf54c19b14b2",
+        "afterBlob": "8f3e818fceb0e04e8604f01006a405d564162a68"
+      },
+      "app/signingConfigs.gradle": {
+        "beforeBlob": null,
+        "afterBlob": "f51a14e01e140e8531465fdd50ce029f5a981046"
+      },
+      "app/src/main/jni/Application.mk": {
+        "beforeBlob": "f9fb635336999a0264d5be7609fa73041b69ec54",
+        "afterBlob": "98e81b453562bb8202f6a273b0d71092ae57697d"
+      },
+      "app/src/main/jni/libwnnDictionary/Android.mk": {
+        "beforeBlob": "04f48d100e236011ae7efe4617e12f87f421d7f0",
+        "afterBlob": "d163e682a90def4e4e391937dac96d66dd7ccb76"
+      },
+      "build.gradle": {
+        "beforeBlob": "d21a5a5053525aa892a5526a4557dbcf560d2706",
+        "afterBlob": "025d42a736020f0de3b4db04ba5cc48d6b0b6e49"
+      }
+    },
+    "exitCode": 0,
+    "apkSHA256": "399ddf0ce58ab2fd07834d24843bc2708412729713e34d4452847c1ae7d5ecc2",
+    "apkBytes": 9605864,
+    "applicationId": "net.gorry.android.input.nicownng",
+    "minSdk": 24,
+    "targetSdk": 29,
+    "abis": [
+      "arm64-v8a",
+      "armeabi-v7a"
+    ]
+  }
+}

@@ -7,6 +7,11 @@
 
 ## 現状と成果物
 
+2026-10-03 UTC、[実際のビルドと成果物検査が成功](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37158527674)。
+未署名APKは9,605,864 bytes、SHA256は
+`399ddf0ce58ab2fd07834d24843bc2708412729713e34d4452847c1ae7d5ecc2`。
+固定ソース、適用差分、ビルド結果は [記録JSON](../config/japanese-ime-build.json) に保存しています。
+
 `Build Japanese IME for Android 10` のGitHub Actionsで実際のAPKコンパイルを行います。
 成功すると `ctz-japanese-ime-unsigned` artifactにAPK、SHA256付きreceipt、ログ、
 APKのSDK情報、上流LICENSE/README、変更点のNOTICEが含まれます。artifactは30日保存です。
