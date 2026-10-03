@@ -25,6 +25,13 @@ GitHub-hosted runnerでのみ使える入口として分離し、容量不足や
 成功・失敗とも `android10-systemimage-build-report` に工程ログ、source lock、ビルドreceiptを保存します。
 どちらも30日保存です。成果物はGitのソースツリーへ入れません。
 
+本体ビルド成功後は、別の `Verify compiled Android 10 image contents` が自動で動きます。
+同じリポジトリの成功runから成果物を取得し、圧縮SHA256、展開、読み取り専用e2fsck、
+Android 10 / SDK29 / ARM64 / 製品情報、ADB認証とUSB設定、基本アプリのファイル存在を検査します。
+Android 10のuserdebug後処理はUSBの `mtp` に `adb` を追加するため、`mtp,adb` も正しい出力として扱います。
+アプリの存在確認は実行テストではありません。検査成功時はJSONレポートを保存します。
+元のsystemイメージへ書き込み・mountはしません。
+
 ソース取得・コンパイル・イメージ生成・CTZでの起動は別の検証段階です。
 system.img生成に成功しても、実測パーティション容量、AVB条件、復旧手段、実機検証が揃うまで
 完成したインストール用ROMとして配布しません。
