@@ -1,0 +1,3 @@
+# Placeholder fstab for bring-up.
+# Replace every mount source and flag with values read from the stock
+# TAB-A05-BA1 01.03.000 fstab before attempting to boot or flash.
