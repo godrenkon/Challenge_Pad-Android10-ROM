@@ -1,5 +1,7 @@
 # Challenge Pad NEXT Android 10 ROM
 
+[日本語 / Japanese](README.ja.md) · [English](README.en.md)
+
 A community open-source bring-up project for the Panasonic/Benesse Challenge Pad NEXT (TAB-A05-BA1 / CTZ), build 01.03.000.
 
 > **Status: research / bring-up. Not a flashable ROM yet.**
@@ -12,6 +14,7 @@ Build a clean Android 10-based system for the TAB-A05-BA1 that behaves like a no
 
 - Android 10 (AOSP / LineageOS 17.1 base)
 - working display, touch, storage, Wi-Fi, audio, sensors and power management
+- Japanese / English language selection
 - optional separately licensed GMS package
 - reproducible build and public documentation
 - recovery and rollback instructions before any public release
@@ -53,7 +56,7 @@ The public projects we found for this device are Android 9 based (including Pixe
 - Never flash an image for TAB-A05-BD, TAB-A03, or another build onto TAB-A05-BA1.
 - GMS is not included in this source tree; Google packages have separate licensing and compatibility requirements.
 
-See [docs/bring-up.md](docs/bring-up.md), [docs/partition-map.md](docs/partition-map.md), and [docs/proprietary-files.md](docs/proprietary-files.md).
+See [docs/bring-up.md](docs/bring-up.md), [docs/build.md](docs/build.md), [docs/partition-map.md](docs/partition-map.md), and [docs/proprietary-files.md](docs/proprietary-files.md).
 
 ## License
 
