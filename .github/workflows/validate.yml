@@ -1,28 +1,57 @@
-name: Validate source tree
+name: Validate source and preparation tools
 
 on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  validate:
+  source:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Check shell syntax
+      - name: Existing extraction script syntax
+        run: bash -n scripts/extract-stock.sh
+      - name: Image geometry and safety regression tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Required files, JSON and manifest
         run: |
-          bash -n scripts/extract-stock.sh
-      - name: Check required files
-        run: |
-          test -f README.md
-          test -f device/benesse/ctz/BoardConfig.mk
-          test -f device/benesse/ctz/lineage_ctz.mk
-          test -f docs/bring-up.md
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import xml.etree.ElementTree as ET
+          for name in ['README.md', 'docs/architecture.ja.md', 'docs/preparation.ja.md',
+                       'device/benesse/ctz/BoardConfig.mk', 'scripts/inspect-ctz.ps1']:
+              assert pathlib.Path(name).is_file(), name
+          for path in pathlib.Path('config').glob('*.json'):
+              json.loads(path.read_text(encoding='utf-8'))
+          manifest = ET.parse('manifest/local_manifests/ctz.xml')
+          assert manifest.find('project').get('path') == 'vendor/suiram/ctz-rom'
+          assert '$(error ' in pathlib.Path('device/benesse/ctz/BoardConfig.mk').read_text()
+          PY
       - name: Reject accidental binary blobs
         run: |
-          if find . -path ./.git -prune -o -type f \
-             \( -name '*.img' -o -name '*.bin' -o -name '*.so' -o -name '*.apk' \) \
-             -print -quit | grep -q .; then
-            echo "Binary/proprietary file detected in source tree" >&2
-            exit 1
-          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          forbidden = {'.img', '.bin', '.so', '.apk', '.xz', '.zip'}
+          files = [p for p in Path('.').rglob('*') if p.is_file()
+                   and '.git' not in p.parts and p.suffix.lower() in forbidden]
+          assert not files, f'Binary/proprietary files detected: {files}'
+          PY
+  powershell:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            shell: powershell
+          - os: ubuntu-22.04
+            shell: pwsh
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline tools tests (no downloads, no device access)
+        shell: ${{ matrix.shell }}
+        run: ./tests/test-tools.ps1

@@ -1,0 +1,15 @@
+{
+  "inspectIntro": "端末情報を読み取ります。解除・初期化・書き込みは行いません。",
+  "adbSelectionError": "ADBで許可済みの端末を1台だけ接続してください。複数台なら -Serial で指定してください。",
+  "reportSaved": "検査レポートを保存しました: {0}",
+  "noFlash": "この結果は書き込み許可ではありません。実機起動・復旧経路は未検証です。",
+  "profileMismatch": "対象の純正構成と一致しない、または情報が不足しています。ROMを書き込まないでください。",
+  "profileMatched": "公開純正プロファイルと一致しました。Android 10 GSIの検証候補です。",
+  "downloadIntro": "PHH製Android 10の既存GSIベースを取得します。CTZ専用完成ROMではありません。",
+  "gappsWarning": "GApps版は別の上流配布物です。Playストアの動作・認証・再配布権を保証しません。",
+  "planOnly": "取得計画のみ表示しました。ダウンロード・端末への書き込みは行っていません。",
+  "existingDownload": "既存ファイルを再検査します。上書きは行いません。",
+  "hashWarning": "上流の信頼できるSHA256が未登録です。計算したSHA256は記録用であり、真正性確認ではありません。",
+  "downloadSaved": "取得情報を保存しました: {0}",
+  "extractHint": "XZの展開は7-Zip等で別途行ってください。展開後にイメージ検査が必要です。"
+}

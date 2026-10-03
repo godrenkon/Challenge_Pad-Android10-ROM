@@ -6,15 +6,20 @@ ccache/
 *.zip
 *.tar
 *.tgz
+*.xz
+*.partial
+downloads/
 
-# Proprietary extraction output
+# Proprietary extraction and private inspection output
 vendor/benesse/ctz/proprietary/
 vendor/benesse/ctz/README.generated.md
 artifacts/
 
-# Host/editor noise
+# Host/editor/test noise
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
 *.swp
+__pycache__/
+*.pyc

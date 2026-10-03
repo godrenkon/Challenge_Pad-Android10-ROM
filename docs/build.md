@@ -1,38 +1,41 @@
-# Build environment
+# ベース取得と将来のソースビルド
 
-This project is source-only until the target-specific kernel, vendor files and
-partition values are verified.
+現在の主経路は[実装方針](architecture.ja.md)にあるAndroid 10 GSI適合検証です。
+[準備ツール](preparation.ja.md)で既存の上流ベースを取得します。
+この取得はビルドではなく、CTZ専用の完成イメージも生成しません。
 
-## Host
+## ソースツリーの現状
 
-A Linux x86_64 machine with at least 16 GB RAM, 200 GB free storage and a
-stable network is recommended. The Windows PC can prepare files and run ADB,
-but a full Android 10 build is normally done in Linux or a Linux VM.
+`device/benesse/ctz` は将来用の雛形です。stock bootヘッダー、kernel integration、
+vendor/HAL、partition geometryが足りないため、BoardConfig.mkは明示的にビルドを停止します。
+停止行だけを削除しても起動可能にはなりません。
+仮のfstab、推測したkernel offsetやboot page sizeはイメージへ入れません。
 
-## Sync a LineageOS 17.1 tree
+以前のlocal manifestはプロジェクト全体を `device/benesse/ctz` に配置し、
+device treeが二重階層になる不正な構成でした。現在はツール・資料用として
+`vendor/suiram/ctz-rom` へ配置するだけです。自動的にlunch targetを登録しません。
+現段階で `lunch lineage_ctz-userdebug` / `mka bacon` を完成手順として案内しません。
 
-    repo init -u https://github.com/LineageOS/android.git -b lineage-17.1 --git-lfs
-    mkdir -p .repo/local_manifests
-    curl -L https://raw.githubusercontent.com/godrenkon/Challenge_Pad-Android10-ROM/main/manifest/local_manifests/ctz.xml \
-      -o .repo/local_manifests/ctz.xml
-    repo sync -c --no-clone-bundle --no-tags -j$(nproc)
+## 将来の再現可能ビルドに必要なもの
 
-The manifest adds this repository at device/benesse/ctz. Vendor files and a
-kernel project will be added only after their exact source and license are
-confirmed.
+- 実機で起動したベース、対応する上流ソース/manifest/patchsetと固定revision
+- そのstock vendorへのVNDK 28適合検証
+- 実機ログに基づくCTZ差分と、日本語標準のproduct設定
+- 実測system容量、AVB条件、確実な純正復旧
+- matching kernelを使う場合は、そのソース、defconfig、boot geometry
 
-## First source-only check
+端末専用ビルドへ進む場合は、kernel/vendor/device treeを分割してAndroid buildへ正しく登録する。
+GSI適合方式では、初期段階でvendorを再生成しない。
 
-    source build/envsetup.sh
-    lunch lineage_ctz-userdebug
+## 開発ツールのテスト
 
-A complete build is intentionally not promised at this stage. It should fail
-with a clear missing-kernel or missing-vendor message rather than producing an
-image that could be mistaken for a working ROM.
+```powershell
+powershell -NoProfile -File .\tests\test-tools.ps1
+```
 
-## Build after bring-up prerequisites are complete
+```sh
+python3 -m unittest discover -s tests -v
+```
 
-    mka bacon
-
-Never flash a generated image until the release checklist in docs/bring-up.md
-passes on the exact TAB-A05-BA1.
+GitHub ActionsでもWindows PowerShell 5.1とLinux PowerShell 7、Pythonテストを実行します。
+通信・端末接続を必要としないテストであり、ROMの実機起動テストではありません。

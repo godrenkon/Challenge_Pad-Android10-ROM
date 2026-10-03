@@ -1,44 +1,42 @@
 # Challenge Pad NEXT Android 10 ROM
 
-A public bring-up project to port Android 10 to the Panasonic/Benesse **Challenge Pad NEXT (TAB-A05-BA1 / CTZ)** and make it usable as a normal Android tablet.
+[日本語（標準）](README.md)
 
-[日本語 README](README.ja.md)
+A public Android 10 bring-up project for **TAB-A05-BA1 / CTZ**, stock build **01.03.000**.
+Japanese is the primary project language and intended final default; English is secondary.
 
-> **Status: research and bring-up. This is not a flashable finished ROM yet.**
+> **Preparation tools implemented. Real-device boot is untested. No finished flashable ROM exists here yet.**
 
-## Goals
+The initial route retains stock boot/kernel/vendor and evaluates an Android 10 GSI.
+Public stock properties report arm64, Treble, system-as-root and VNDK 28.
+The selected PHH v222 arm64-ab vanilla image is an existing upstream test base,
+not an original CTZ ROM or verified bootable release. PHH's AB label does not establish physical slot layout.
 
-- Android 10 based on AOSP / LineageOS 17.1
-- Working display, touch, storage, Wi-Fi, audio, sensors and power management
-- Japanese / English language selection
-- GMS handled as a separate, properly licensed package
-- Reproducible builds and public documentation
-- Safe release process with recovery instructions
+## Tools
 
-## Target
+- `download-base.cmd`: fetches the upstream base to the PC, never flashes or copies to SD.
+- `inspect-device.cmd`: reads authorized ADB properties, compares the exact stock profile,
+  and writes a minimal JSON report without serial/MAC identifiers.
+- `scripts/inspect-system-image.py`: checks raw ext4 / Android sparse geometry and optional
+  measured partition fit. This does not validate filesystems, CRC, OS version, AVB or boot compatibility.
 
-| Item | Value |
-| --- | --- |
-| Device | Challenge Pad NEXT |
-| Model | TAB-A05-BA1 |
-| Internal target | CTZ |
-| SoC | MediaTek MT8168A |
-| GPU | Mali-G52 MC1 |
-| Stock OS | Android 9 |
-| Stock build | 01.03.000 |
-| CPU ABI | arm64 |
-| Display | 1200 x 1920 |
+PowerShell tools default to Japanese messages; use `-Language en` for English.
+PS1 source is ASCII-only; localized UTF-8 JSON is read explicitly for Windows PowerShell 5.1 compatibility.
+CMD launchers pause on exit. Reports and downloads are never overwritten.
 
-## Current state
+The downloader defaults to vanilla; `-Variant gapps` explicitly selects another upstream asset.
+No trusted upstream SHA256 is pinned yet. Download length and XZ magic are checked;
+the computed hash is a receipt, not an authenticity guarantee. No extraction happens automatically.
 
-The public Next projects found during the initial search are Android 9-based projects such as PixelTouch. No verified public Android 10 image for TAB-A05-BA1 was found. This repository keeps source code and extraction steps separate and does not redistribute stock files.
+Tests cover offline tooling behavior, not actual upstream downloads, hardware operation or ROM boot.
+Stock backup/restore, partition geometry, AVB policy, panel variation and real-device logs remain required.
+`flashReady` is always false. A 1GB SD card is not assumed large enough for an expanded image.
 
-## Important
+The source-build skeleton is explicitly disabled until hardware facts are verified.
+The optional manifest checks out project notes/tools at `vendor/suiram/ctz-rom`, not as a working device tree.
+GMS/vendor binaries are not redistributed. Play operation and certification are not guaranteed.
+Android 10 is old and does not provide current security updates.
 
-- USB is not required just to work on or read the source tree.
-- USB data access is required to capture stock partitions, unlock the bootloader, flash images and test the device.
-- Bootloader unlocking normally wipes user data.
-- Never flash an image for TAB-A05-BD, TAB-A03 or another build onto TAB-A05-BA1.
-- GMS and stock vendor binaries are not included in this public source tree.
-
-See [bring-up plan](docs/bring-up.md), [build instructions](docs/build.md), and [partition worksheet](docs/partition-map.md).
+See the Japanese-first [preparation guide](docs/preparation.ja.md),
+[architecture](docs/architecture.ja.md), [device facts](docs/device-facts.md),
+and [bring-up checklist](docs/bring-up.md).

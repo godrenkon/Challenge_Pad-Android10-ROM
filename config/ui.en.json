@@ -1,0 +1,15 @@
+{
+  "inspectIntro": "Reading device information only. No unlock, wipe, or flash.",
+  "adbSelectionError": "Connect exactly one authorized ADB device, or select one with -Serial.",
+  "reportSaved": "Inspection report saved: {0}",
+  "noFlash": "This result is NOT flash authorization. Boot and rollback remain unverified.",
+  "profileMismatch": "Stock profile mismatch or missing data. Do not flash.",
+  "profileMatched": "Public stock profile matched. Candidate for Android 10 GSI testing only.",
+  "downloadIntro": "Fetching the existing PHH Android 10 GSI base. Not a finished CTZ ROM.",
+  "gappsWarning": "GApps is a separate upstream distribution. Play Store operation, certification and redistribution rights are not guaranteed.",
+  "planOnly": "Plan only. Nothing downloaded or flashed.",
+  "existingDownload": "Checking an existing file without overwriting it.",
+  "hashWarning": "No trusted upstream SHA256 is pinned. Computed SHA256 is a receipt, not authenticity verification.",
+  "downloadSaved": "Download receipt saved: {0}",
+  "extractHint": "Extract the XZ file separately with 7-Zip or similar, then inspect the image."
+}

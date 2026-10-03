@@ -1,64 +1,53 @@
-# Android 10 bring-up plan
+# 実機移植とリリースの工程
 
-## Phase 0 — source and identity
+## 0：対象の照合
 
-Target is TAB-A05-BA1 / CTZ / stock build 01.03.000. Confirm the value in
-Settings and record the complete build fingerprint before extraction.
+TAB-A05-BA1 / CTZ / stock 01.03.000を基準とする。
+`scripts/inspect-ctz.ps1` の読み取り専用レポートを取得する。
+改変済みの端末は不一致になり得るため、値を偽装せず状態を調べる。
+一致しても起動・書き込み・解除可能性は証明されない。
 
-The public research found Android 9-based system modifications and PixelTouch,
-but no verified public Android 10 image for this exact target. This repository
-therefore treats every binary as untrusted until it is matched to the target.
+## 1：保存と復旧経路
 
-## Phase 1 — stock capture
+純正boot/vendor/system、実際に存在するrecovery/dtbo/vbmeta、partition table/fstab、
+bootヘッダー、kernel情報を取得する。存在しないパーティションをある前提で扱わない。
+独自のgeneric MTK scatterや別機種イメージを使わない。
+保護された取得操作が必要な場合はそこで停止し、許可と方法を再確認する。
+ユーザーデータのバックアップと、対象stockへ戻せる経路を別に確認する。
+stockバイナリや個人情報は公開リポジトリへ入れない。
 
-Required artifacts, kept outside this repository:
+## 2：Android 10 GSIを検証可能にする
 
-- boot.img
-- recovery.img
-- vendor.img
-- system.img or system-as-root contents
-- dtbo.img
-- lk.img and preloader metadata where legally available
-- partition table and fstab
-- getprop output and kernel config
+最初の候補はPHH v222 arm64-ab vanilla。stock kernel/vendorを維持する。
+展開したイメージの必要容量を実測system容量と照合し、fstab/SAR構成とAVB条件を確認する。
+圧縮サイズで容量を判断しない。未確認のboot offset、page size、slot nameを使わない。
+必要な復旧/書き込み方法が端末で確認できるまで、自動flashツールを追加しない。
 
-The exact USB data path and bootloader state determine which capture method is
-safe. Do not use a generic MTK scatter file or a CTX image.
+## 3：初回起動とCTZ固有差分
 
-## Phase 2 — recovery
+起動ログ、logcat、kernelログ、HALの失敗、画面/タッチ挙動を収集する。
+NVT/FTSのタッチパネル種別を記録し、確認していないパネルまで対応を主張しない。
+まず画面、タッチ、ストレージ、ADB、Wi-Fi。続いてBluetooth、音声、カメラ、センサー、電源。
+必要な差分だけを実装して、同じ条件で再テストする。
 
-Build a recovery-only image first. Validate:
+## 4：日本語標準化とGMS
 
-- display orientation and 1200x1920 panel modes
-- touch coordinates and multitouch
-- internal storage and SD card
-- reboot, shutdown and charger mode
-- recovery logs survive reboot
+CTZ向け成果物で日本語を初期言語にし、英語も選択できることを実機確認する。
+今のproduct雛形やツールの日本語表示が、上流GSIの標準言語を変更したことにはならない。
+GMSは起動・HAL検証の後に別工程で調べる。APKの単純追加でPlay動作を保証しない。
+Google Play認証・CTS・アプリ互換性を別項目として扱う。
 
-A recovery that cannot mount the stock data partition is not ready for system
-testing.
+## 5：リリース判定
 
-## Phase 3 — Android 10 system
+- コールドブート10回、再起動10回
+- 全画面タッチとマルチタッチ、パネル種別ごとの結果
+- microSD/内部ストレージの読み書き
+- Wi-Fiのスリープ復帰・再接続、Bluetoothの接続/解除
+- 音声再生、マイク録音、カメラのプレビュー/撮影
+- 回転、センサー、充電、電源OFF充電
+- スリープ/復帰、待機消費の測定
+- 初期化、純正への復旧
+- 日本語初期表示と英語への切り替え
+- 既知の不具合、上流revision、配布SHA256とライセンスの記録
 
-Start with the smallest AOSP/LineageOS 17.1 system. Keep vendor HALs isolated,
-then enable display, graphics, audio, Wi-Fi, Bluetooth, camera, sensors and
-power one at a time. Capture logcat, dmesg and tombstones for every failure.
-
-## Phase 4 — validation
-
-A release candidate must pass:
-
-- ten cold boots and ten warm reboots;
-- touch across the full panel;
-- Wi-Fi reconnect after suspend;
-- Bluetooth pair/unpair;
-- audio output and microphone recording;
-- camera preview and still capture;
-- charging while powered off;
-- sleep/wake and battery drain observation;
-- factory reset and rollback to stock.
-
-## Release rule
-
-Until the matrix passes on at least one exact TAB-A05-BA1, publish only as
-UNTESTED source or engineering builds. Do not call it a complete ROM.
+この表を実機で埋めるまで「完全なROM」と呼ばず、未検証ソース/準備ツールとして公開する。

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "target": "TAB-A05-BA1 / CTZ / 01.03.000",
+  "required": {
+    "ro.product.model": "TAB-A05-BA1",
+    "ro.build.version.release": "9",
+    "ro.build.version.sdk": "28",
+    "ro.build.id": "01.03.000",
+    "ro.build.fingerprint": "Panasonic/TAB-A05-BA1/TAB-A05-BA1:9/01.03.000/01.03.000:user/release-keys",
+    "ro.treble.enabled": "true",
+    "ro.build.system_root_image": "true",
+    "ro.board.platform": "mt8168",
+    "ro.vndk.version": "28"
+  },
+  "abiToken": "arm64-v8a",
+  "observational": [
+    "ro.product.device", "ro.product.cpu.abilist", "ro.zygote",
+    "ro.sf.hwrotation", "ro.sf.lcd_density", "ro.product.locale",
+    "ro.build.version.security_patch", "ro.vendor.build.security_patch",
+    "ro.boot.slot_suffix", "ro.build.ab_update",
+    "ro.boot.dynamic_partitions", "ro.boot.flash.locked",
+    "ro.boot.verifiedbootstate", "ro.oem_unlock_supported"
+  ],
+  "candidate": "PHH v222 arm64-ab vanilla (UNTESTED)",
+  "sources": [
+    "https://github.com/s1204IT/DchaLibraries-CTZ/blob/main/Common/build.prop",
+    "https://github.com/s1204IT/DchaLibraries-CTZ/blob/main/Common/vendor_build.prop",
+    "https://github.com/s1204IT/DchaLibraries-CTZ/blob/main/Common/default.prop"
+  ]
+}

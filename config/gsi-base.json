@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "repository": "phhusson/treble_experimentations",
+  "release": "v222",
+  "androidVersion": "10",
+  "status": "upstream-base-only-untested-on-ctz",
+  "assets": {
+    "vanilla": {
+      "name": "system-quack-arm64-ab-vanilla.img.xz",
+      "bytes": 517004428,
+      "sha256": null,
+      "url": "https://github.com/phhusson/treble_experimentations/releases/download/v222/system-quack-arm64-ab-vanilla.img.xz"
+    },
+    "gapps": {
+      "name": "system-quack-arm64-ab-gapps.img.xz",
+      "bytes": 748958144,
+      "sha256": null,
+      "url": "https://github.com/phhusson/treble_experimentations/releases/download/v222/system-quack-arm64-ab-gapps.img.xz"
+    }
+  },
+  "note": "No upstream cryptographic digest available. Byte count is not authenticity verification."
+}

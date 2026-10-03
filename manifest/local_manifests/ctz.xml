@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <!-- Place this file in .repo/local_manifests after syncing LineageOS 17.1. -->
+  <!-- Development notes/tools checkout, NOT a registered working device tree. -->
+  <remote name="ctz-github" fetch="https://github.com/" />
   <project name="godrenkon/Challenge_Pad-Android10-ROM"
-           path="device/benesse/ctz"
-           remote="github"
+           path="vendor/suiram/ctz-rom"
+           remote="ctz-github"
            revision="main" />
 </manifest>

@@ -1,12 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-# Keep the product minimal until each hardware HAL is confirmed to exist on
-# the chosen Android 10 base and the exact TAB-A05-BA1 vendor image.
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/rootdir/etc/fstab.ctz:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.ctz
-
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.product.device=ctz \
-    ro.product.model=TAB-A05-BA1 \
-    ro.product.manufacturer=Panasonic \
-    ro.hardware=mt8168
+# Disabled source-build skeleton. The first bring-up uses stock boot/vendor
+# with a separately obtained Android 10 GSI, NOT a generated vendor image.
+# Never overwrite stock fstab or ro.hardware from an inferred platform name.
+# Product identity is declared in lineage_ctz.mk, not duplicate properties.
