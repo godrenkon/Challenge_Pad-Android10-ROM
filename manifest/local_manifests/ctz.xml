@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Android 10 / LineageOS 17.1 base. Pin the revision in the build
+       environment once the exact upstream base is selected. -->
+  <project name="LineageOS/android_device_benesse_ctz"
+           path="device/benesse/ctz"
+           remote="github"
+           revision="lineage-17.1" />
+</manifest>
