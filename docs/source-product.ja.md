@@ -16,6 +16,7 @@
 
 日本語UIと日本語キーボードは別です。Android 10ツリーで確認できていないIMEモジュールを
 推測で追加せず、日本語入力の組み込みと動作確認は残作業とします。
+[nicoWnnGの別APKビルド](japanese-ime.ja.md)を実装しましたが、製品の `PRODUCT_PACKAGES` へはまだ追加していません。
 timezone、画面回転、タッチ、HAL、kernel、SELinux設定はこの差分で変更しません。
 
 ## 上流の固定範囲

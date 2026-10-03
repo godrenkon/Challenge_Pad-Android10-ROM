@@ -30,6 +30,8 @@ The tool checks nine pinned input blobs, retains backups, refuses conflicts, and
 It does not patch the downloaded GSI, sync the whole source tree, build Android or operate the tablet.
 The component snapshot is not a complete release manifest or proof of v222 binary reproducibility.
 Japanese input-method integration and real-device locale behavior remain unverified.
+The separate [Japanese IME build](docs/japanese-ime.ja.md) compiles pinned nicoWnnG source
+into a non-debuggable unsigned APK. It is not yet signed, integrated into the ROM or runtime-tested.
 See the Japanese-first [source recipe guide](docs/source-product.ja.md).
 
 The [integrated manifest](manifest/ctz-android10.xml) contains 762 projects: AOSP is pinned to

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "repository": "gorry/nicoWnnG",
+  "commit": "f0424c773941441124ca2707a5da7fb4816188df",
+  "gradleVersion": "8.13",
+  "ndkVersion": "28.1.13356709",
+  "compileSdk": 36,
+  "targetSdk": 29,
+  "minSdk": 24,
+  "applicationId": "net.gorry.android.input.nicownng",
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a"
+  ],
+  "requiredFiles": {
+    "build.gradle": "d21a5a5053525aa892a5526a4557dbcf560d2706",
+    "app/build.gradle": "5befa5f030d591fa35964d3ad1cccf54c19b14b2",
+    "app/src/main/jni/Application.mk": "f9fb635336999a0264d5be7609fa73041b69ec54",
+    "app/src/main/jni/libwnnDictionary/Android.mk": "04f48d100e236011ae7efe4617e12f87f421d7f0",
+    "app/src/main/AndroidManifest.xml": "0b7a4253500f63fadfe1c3f1966857e4c811a272",
+    "LICENSE": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+    "README.txt": "801f5541d92c00c8d4d7bffd7e3e58b2669d44e5",
+    "README.orig.txt": "4364d5153dac3fd5a75f1c990f7667a60186b775"
+  },
+  "runtimeTested": false
+}
