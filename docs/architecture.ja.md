@@ -32,8 +32,10 @@ Web閲覧・アカウント利用の安全性、Google Play認証、アプリの
 ## 第3段階：再現可能な専用ビルド
 
 上流ベース、CTZ差分、依存バージョン、ビルドログを固定して日本語標準の成果物を作る。
-[日本語GSI製品設定と適用ツール](source-product.ja.md)は実装済みだが、固定範囲は一部の
-コンポーネントであり、全ソースビルドは未実施。
+[日本語GSI製品設定と適用ツール](source-product.ja.md)、
+[762プロジェクトの統合manifestとcommit記録/ビルドツール](source-build.ja.md)は実装済み。
+AOSPはタグ、PHH/追加コンポーネントはcommitで指定する。
+実際の全同期・全commit記録・Androidビルドは未実施。
 matching kernel sourceとvendor条件がそろえば、端末専用AOSP/LineageOSツリーも検討する。
 現在の `device/benesse/ctz` はそのための無効化済み雛形であり、完成device treeではない。
 

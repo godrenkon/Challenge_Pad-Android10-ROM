@@ -10,6 +10,9 @@
 `scripts/prepare-gsi-source.py` は固定した上流9ファイルを照合し、明示的な `--apply` でのみ
 専用ソースツリーへ適用します。[内容・使い方・検証の限界](source-product.ja.md)を確認してください。
 全ソース同期・コンパイル・system.img生成はまだ完了していません。
+[統合manifestとソース固定/ビルド手順](source-build.ja.md)を追加しました。
+AOSPタグと27個の固定commitを統合した762プロジェクトが対象です。
+実際の全同期とAndroidビルドは未実施で、現在の空き約28GBの環境では進めていません。
 
 `device/benesse/ctz` は将来用の雛形です。stock bootヘッダー、kernel integration、
 vendor/HAL、partition geometryが足りないため、BoardConfig.mkは明示的にビルドを停止します。

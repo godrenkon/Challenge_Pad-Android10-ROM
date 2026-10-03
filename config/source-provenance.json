@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "status": "tag-pinned-recipe-not-build-tested",
+  "aosp": {
+    "repository": "aosp-mirror/platform_manifest",
+    "tag": "android-10.0.0_r41",
+    "manifestCommit": "458a84154e391e7d0cd4f87ab17955bcfb3b4310",
+    "defaultXmlBlob": "12189db328a536cb812b27f495da6824ed4cfbfa",
+    "fetch": "https://android.googlesource.com/"
+  },
+  "phh": {
+    "manifestCommit": "b66f014948ac17c700fc4eb746c3b56b381611c2",
+    "replaceXmlBlob": "393a1ed94db750dc7504aa8b5c5193e831698204",
+    "historyCutoff": "2020-08-06T08:43:33Z",
+    "note": "Historical branch snapshots, not asserted to reproduce the v222 binary.",
+    "projects": [
+      {
+        "path": "build/make",
+        "repo": "phhusson/platform_build",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "165f02822b54b3651fb388fc425ea9f3b416b496"
+      },
+      {
+        "path": "system/core",
+        "repo": "phhusson/platform_system_core",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "67841c06d5c532acfd83cab9b38ab9c909ef5a2a",
+        "commitDate": "2020-06-02T16:08:37Z"
+      },
+      {
+        "path": "system/sepolicy",
+        "repo": "phhusson/platform_system_sepolicy",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "190246ee8a6cd75b3f414eae7489e83843b9e6bf",
+        "commitDate": "2020-06-02T16:09:11Z"
+      },
+      {
+        "path": "frameworks/native",
+        "repo": "phhusson/platform_frameworks_native",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "17089abf52412492da623cb25175116bca2b47c4",
+        "commitDate": "2020-07-06T18:47:05Z"
+      },
+      {
+        "path": "system/vold",
+        "repo": "phhusson/platform_system_vold",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "527edc81f1130780ca9d6419b5a3619c19311e13",
+        "commitDate": "2020-06-02T16:09:47Z"
+      },
+      {
+        "path": "system/bt",
+        "repo": "phhusson/platform_system_bt",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "32e2ee1c94e31f9c9c31d5d319dd863d3454455d",
+        "commitDate": "2020-07-06T18:47:58Z"
+      },
+      {
+        "path": "external/selinux",
+        "repo": "phhusson/platform_external_selinux",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "b54a7a80c84c693549a77c57e2dc5a023928f524",
+        "commitDate": "2020-05-24T15:22:22Z"
+      },
+      {
+        "path": "frameworks/base",
+        "repo": "phhusson/platform_frameworks_base",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "86111530e6312f9b3f32d13bdf647a9b850485d9",
+        "commitDate": "2020-08-05T18:42:52Z"
+      },
+      {
+        "path": "frameworks/av",
+        "repo": "phhusson/platform_frameworks_av",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "e525052c29f65a27ccc13396e62f113fcba6dc16",
+        "commitDate": "2020-08-05T18:43:12Z"
+      },
+      {
+        "path": "frameworks/opt/telephony",
+        "repo": "phhusson/platform_frameworks_opt_telephony",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "c0c3ebe807548601549478e1b872a8faeef9b7ce",
+        "commitDate": "2020-06-02T16:21:50Z"
+      },
+      {
+        "path": "system/libvintf",
+        "repo": "phhusson/platform_system_libvintf",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "a9844b4efa24fbce6c70cc75e3f303d3051b5767",
+        "commitDate": "2019-07-29T23:45:51Z"
+      },
+      {
+        "path": "system/netd",
+        "repo": "phhusson/platform_system_netd",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "455cd31fda4bc0488a6fada020b18a44f584e928",
+        "commitDate": "2020-06-02T16:29:00Z"
+      },
+      {
+        "path": "frameworks/opt/net/wifi",
+        "repo": "phhusson/platform_frameworks_opt_net_wifi",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "5439053565a7eb1227465862723ae2ab9fb73633",
+        "commitDate": "2020-06-02T16:29:31Z"
+      },
+      {
+        "path": "packages/apps/Settings",
+        "repo": "phhusson/platform_packages_apps_Settings",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "9a63f38eb03bd216b68fe4d4ee6c3ae94f77f9f2",
+        "commitDate": "2020-08-05T18:45:08Z"
+      },
+      {
+        "path": "packages/services/Telephony",
+        "repo": "phhusson/platform_packages_services_Telephony",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "6de3baacbf68812a80835c536ce5f8b670a86a80",
+        "commitDate": "2020-08-05T18:45:22Z"
+      },
+      {
+        "path": "bionic",
+        "repo": "phhusson/platform_bionic",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "ddd26d7a47e624e2b06b36d884330450b0322456",
+        "commitDate": "2020-03-02T20:24:16Z"
+      },
+      {
+        "path": "bootable/recovery",
+        "repo": "phhusson/platform_bootable_recovery",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "4978b4a960230a2930324f48bb8ba06424c63e93",
+        "commitDate": "2020-06-02T16:31:12Z"
+      },
+      {
+        "path": "system/bpf",
+        "repo": "phhusson/platform_system_bpf",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "ec0171483bfc6154635e75b8ceaaf16d3d0d1a91",
+        "commitDate": "2020-03-02T20:25:25Z"
+      },
+      {
+        "path": "external/skia",
+        "repo": "phhusson/platform_external_skia",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "4d333a58b06a6dc69d54c0485c034dd3439f20f2",
+        "commitDate": "2020-03-02T20:26:37Z"
+      },
+      {
+        "path": "packages/apps/DeskClock",
+        "repo": "phhusson/platform_packages_apps_DeskClock",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "8256fa44f303af89c7692c87e87d66c1d21ba5bc",
+        "commitDate": "2019-12-04T22:57:45Z"
+      },
+      {
+        "path": "packages/apps/Camera2",
+        "repo": "phhusson/platform_packages_apps_Camera2",
+        "branch": "android-10.0.0_r41-phh",
+        "sha": "3a327c01fa7ffd388bd50d58973d7b252f95c812",
+        "commitDate": "2020-03-02T20:28:07Z"
+      },
+      {
+        "path": "device/phh/treble",
+        "repo": "phhusson/device_phh_treble",
+        "branch": "android-10.0",
+        "sha": "64289357288a82fc9771c013b54f9e0833689599"
+      },
+      {
+        "path": "vendor/vndk",
+        "repo": "phhusson/vendor_vndk",
+        "branch": "android-10.0",
+        "sha": "cea8e7093616005e68fd527a2acd81f9f2af30c3"
+      },
+      {
+        "path": "vendor/hardware_overlay",
+        "repo": "phhusson/vendor_hardware_overlay",
+        "branch": "pie",
+        "sha": "7293fa02e43ce63f07b95dc44d7ab6aec262407e",
+        "commitDate": "2020-07-17T13:58:36Z"
+      },
+      {
+        "path": "vendor/interfaces",
+        "repo": "phhusson/vendor_interfaces",
+        "branch": "pie",
+        "sha": "0611b67d96f7f7f71b12079a1b345022fe7bd323",
+        "commitDate": "2020-05-14T17:35:05Z"
+      },
+      {
+        "path": "vendor/vndk-tests",
+        "repo": "phhusson/vendor_vndk-tests",
+        "branch": "master",
+        "sha": "05737a966b796795c71b562fac41283fc1f12e6e",
+        "commitDate": "2019-10-25T21:34:21Z"
+      },
+      {
+        "path": "external/exfat",
+        "repo": "relan/exfat",
+        "branch": "master",
+        "sha": "559c61f26c677d11bf597c767ad274d8b0c36c1e",
+        "commitDate": "2020-05-04T16:07:34Z"
+      }
+    ]
+  },
+  "excludedOptionalProjects": [
+    "vendor/gapps-go",
+    "vendor/magisk",
+    "vendor/foss",
+    "vendor/gapps"
+  ]
+}

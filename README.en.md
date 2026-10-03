@@ -32,6 +32,17 @@ The component snapshot is not a complete release manifest or proof of v222 binar
 Japanese input-method integration and real-device locale behavior remain unverified.
 See the Japanese-first [source recipe guide](docs/source-product.ja.md).
 
+The [integrated manifest](manifest/ctz-android10.xml) contains 762 projects: AOSP is pinned to
+`android-10.0.0_r41`, while 27 PHH/additional components use fixed commits.
+`lock-source.py` inspects local Git checkouts and writes a full commit manifest before patching.
+`build-ctz.py` checks that lock and the approved patch, then builds only with explicit `--run`.
+It uses a new output directory and records logs, failures, image geometry and SHA256.
+Full sync and real Android compilation have not been performed; the current host has only about
+28GB free. The wrapper's conservative policy requires 150GiB free for output and 8GiB effective memory,
+separate from source storage; these are project checks, not official minimum requirements.
+See the Japanese-first [source build guide](docs/source-build.ja.md). Offline wrapper tests use fake
+build commands and do not demonstrate Android compilation or device compatibility.
+
 PowerShell tools default to Japanese messages; use `-Language en` for English.
 PS1 source is ASCII-only; localized UTF-8 JSON is read explicitly for Windows PowerShell 5.1 compatibility.
 CMD launchers pause on exit. Reports and downloads are never overwritten.
