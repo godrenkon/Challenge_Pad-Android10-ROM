@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Existing extraction script syntax
         run: bash -n scripts/extract-stock.sh
-      - name: Image geometry and safety regression tests
+      - name: Image, extraction and GSI source regression tests
         run: python3 -m unittest discover -s tests -v
       - name: Required files, JSON and manifest
         run: |
@@ -23,6 +23,8 @@ jobs:
           import pathlib
           import xml.etree.ElementTree as ET
           for name in ['README.md', 'docs/architecture.ja.md', 'docs/preparation.ja.md',
+                       'docs/source-product.ja.md', 'gsi/suiram_ctz10.mk', 'gsi/ctz_locale.mk',
+                       'scripts/prepare-gsi-source.py', 'config/source-profile.json',
                        'device/benesse/ctz/BoardConfig.mk', 'scripts/inspect-ctz.ps1']:
               assert pathlib.Path(name).is_file(), name
           for path in pathlib.Path('config').glob('*.json'):

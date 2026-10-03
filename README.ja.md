@@ -7,5 +7,6 @@
 - [Android 10実装方針](docs/architecture.ja.md)
 - [端末情報の根拠](docs/device-facts.md)
 - [実機検証の工程](docs/bring-up.md)
+- [日本語標準のGSIソース設定](docs/source-product.ja.md)
 
 [English summary](README.en.md)

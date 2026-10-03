@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "status": "reviewed-component-snapshot-not-full-release-manifest",
+  "androidTag": "android-10.0.0_r41",
+  "upstreamBuildScript": "https://github.com/phhusson/treble_experimentations/blob/4a5cabb317a69ccf646c5742f88d3345a9ccbecf/build.sh",
+  "phhManifestCommit": "b66f014948ac17c700fc4eb746c3b56b381611c2",
+  "phhDeviceCommit": "64289357288a82fc9771c013b54f9e0833689599",
+  "phhBuildCommit": "165f02822b54b3651fb388fc425ea9f3b416b496",
+  "phhVndkCommit": "cea8e7093616005e68fd527a2acd81f9f2af30c3",
+  "stockFlashReady": false,
+  "requiredFiles": {
+    "device/phh/treble/generate.sh": "574281542e12280a65842dc4fe4ac4249c777157",
+    "device/phh/treble/base.mk": "cad14e4da9a4b924c67779254cbc2b7a9967d63b",
+    "device/phh/treble/base-pre.mk": "6a317e42e7553069aaa31fb5cb565462105cda7e",
+    "device/phh/treble/phhgsi_arm64_ab/BoardConfig.mk": "1f6f532ef79ada0f0718087669736ac7274a60fd",
+    "build/make/core/Makefile": "f180ef71095d63dc94f631b2235ff00fd4ea8882",
+    "build/make/core/version_defaults.mk": "9f64081379fa2d7994f10ea946e58a4264e71416",
+    "build/make/tools/buildinfo.sh": "24ac663f209dedf3fdc2ee8cd0a4ebc662947f4d",
+    "build/make/target/product/aosp_arm64_ab.mk": "f707a39dd24c46c7ffa29ce7c2f04a18f174b3c2",
+    "vendor/vndk/vndk.mk": "9499f02ecd9c31eddf9377037d0a7dbd6c527eab"
+  },
+  "additionalRequiredPaths": [],
+  "securityEdits": [
+    {"before": "\tro.adb.secure=0 \\\n", "after": "\tro.adb.secure=1 \\\n"},
+    {"before": "\tpersist.sys.usb.config=adb \\\n", "after": "\tpersist.sys.usb.config=mtp \\\n"}
+  ],
+  "note": "Component commits were selected from historical branch history before v222 publication. They are not asserted to reproduce the v222 binary bit-for-bit. Whole-tree pinning and an actual Android build are still pending."
+}

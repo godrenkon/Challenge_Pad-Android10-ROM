@@ -5,7 +5,7 @@
 A public Android 10 bring-up project for **TAB-A05-BA1 / CTZ**, stock build **01.03.000**.
 Japanese is the primary project language and intended final default; English is secondary.
 
-> **Preparation tools implemented. Real-device boot is untested. No finished flashable ROM exists here yet.**
+> **Preparation tools and a Japanese-first GSI source recipe are implemented. Full compilation and real-device boot are untested. No finished flashable ROM exists here yet.**
 
 The initial route retains stock boot/kernel/vendor and evaluates an Android 10 GSI.
 Public stock properties report arm64, Treble, system-as-root and VNDK 28.
@@ -19,6 +19,18 @@ not an original CTZ ROM or verified bootable release. PHH's AB label does not es
   and writes a minimal JSON report without serial/MAC identifiers.
 - `scripts/inspect-system-image.py`: checks raw ext4 / Android sparse geometry and optional
   measured partition fit. This does not validate filesystems, CRC, OS version, AVB or boot compatibility.
+- `scripts/prepare-gsi-source.py`: check-only by default; explicit `--apply` installs the
+  `suiram_ctz10-userdebug` product into a separate matching Android source tree.
+
+The new recipe selects Japanese first and English second, keeps the generic PHH board,
+and adds neither GApps nor the PHH superuser applications. It patches the shared PHH base to
+request authenticated ADB and MTP as the default USB configuration, affecting other PHH products
+in that tree too. Use a dedicated source tree. Userdebug remains an engineering build.
+The tool checks nine pinned input blobs, retains backups, refuses conflicts, and is idempotent.
+It does not patch the downloaded GSI, sync the whole source tree, build Android or operate the tablet.
+The component snapshot is not a complete release manifest or proof of v222 binary reproducibility.
+Japanese input-method integration and real-device locale behavior remain unverified.
+See the Japanese-first [source recipe guide](docs/source-product.ja.md).
 
 PowerShell tools default to Japanese messages; use `-Language en` for English.
 PS1 source is ASCII-only; localized UTF-8 JSON is read explicitly for Windows PowerShell 5.1 compatibility.
@@ -32,7 +44,8 @@ Tests cover offline tooling behavior, not actual upstream downloads, hardware op
 Stock backup/restore, partition geometry, AVB policy, panel variation and real-device logs remain required.
 `flashReady` is always false. A 1GB SD card is not assumed large enough for an expanded image.
 
-The source-build skeleton is explicitly disabled until hardware facts are verified.
+The device-specific `device/benesse/ctz` skeleton is explicitly disabled until hardware facts are verified;
+the separate generic GSI source recipe is experimental and has not been compiled.
 The optional manifest checks out project notes/tools at `vendor/suiram/ctz-rom`, not as a working device tree.
 GMS/vendor binaries are not redistributed. Play operation and certification are not guaranteed.
 Android 10 is old and does not provide current security updates.

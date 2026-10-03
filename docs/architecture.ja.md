@@ -12,7 +12,7 @@ TAB-A05-BA1の公開stockはAndroid 9、arm64、Treble、system-as-root、VNDK 2
 | boot/kernel | 対象stockのものを保存・維持 | イメージ未取得 |
 | vendor/HAL/firmware | VNDK 28の対象stockを維持 | イメージ未取得 |
 | CTZ固有修正 | 起動ログと差分から必要なoverlay/修正を実装 | 未着手、値を推測して適用しない |
-| 言語 | 最終成果物は日本語標準、英語は追加選択肢 | ツールは日本語標準。上流GSIの言語は未変更 |
+| 言語 | 最終成果物は日本語標準、英語は追加選択肢 | ツールと新規GSIソース設定は日本語標準。配布済みGSIは未変更、実機未検証 |
 | GMS | OS起動・ハードウェア検証後に別途検証 | Play動作・認証未保証 |
 
 `arm64-ab` の `ab` はPHH側のsystem-as-root向けイメージ名称として選んでいる。
@@ -32,6 +32,8 @@ Web閲覧・アカウント利用の安全性、Google Play認証、アプリの
 ## 第3段階：再現可能な専用ビルド
 
 上流ベース、CTZ差分、依存バージョン、ビルドログを固定して日本語標準の成果物を作る。
+[日本語GSI製品設定と適用ツール](source-product.ja.md)は実装済みだが、固定範囲は一部の
+コンポーネントであり、全ソースビルドは未実施。
 matching kernel sourceとvendor条件がそろえば、端末専用AOSP/LineageOSツリーも検討する。
 現在の `device/benesse/ctz` はそのための無効化済み雛形であり、完成device treeではない。
 

@@ -6,6 +6,11 @@
 
 ## ソースツリーの現状
 
+`gsi/` に日本語初期言語・英語追加のPHH派生製品設定を実装しました。
+`scripts/prepare-gsi-source.py` は固定した上流9ファイルを照合し、明示的な `--apply` でのみ
+専用ソースツリーへ適用します。[内容・使い方・検証の限界](source-product.ja.md)を確認してください。
+全ソース同期・コンパイル・system.img生成はまだ完了していません。
+
 `device/benesse/ctz` は将来用の雛形です。stock bootヘッダー、kernel integration、
 vendor/HAL、partition geometryが足りないため、BoardConfig.mkは明示的にビルドを停止します。
 停止行だけを削除しても起動可能にはなりません。
@@ -20,7 +25,7 @@ device treeが二重階層になる不正な構成でした。現在はツール
 
 - 実機で起動したベース、対応する上流ソース/manifest/patchsetと固定revision
 - そのstock vendorへのVNDK 28適合検証
-- 実機ログに基づくCTZ差分と、日本語標準のproduct設定
+- 実機ログに基づくCTZ差分と、実装済み日本語product設定の本物のAndroidビルド/実機検証
 - 実測system容量、AVB条件、確実な純正復旧
 - matching kernelを使う場合は、そのソース、defconfig、boot geometry
 

@@ -1,0 +1,191 @@
+import importlib.util
+import json
+import shutil
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location("ctz_source", ROOT / "scripts/prepare-gsi-source.py")
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
+
+
+class SourceTest(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name) / "android"
+        self.root.mkdir()
+        self.profile = json.loads((ROOT / "config/source-profile.json").read_text())
+        self.base_original = (b"# synthetic offline fixture, not an Android tree\n"
+                              b"PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \\\n"
+                              b"\tro.adb.secure=0 \\\n"
+                              b"\tpersist.sys.usb.config=adb \\\n"
+                              b"\tro.logd.auditd=true\n")
+        self.files = {}
+        for relative in self.profile["requiredFiles"]:
+            data = self.base_original if relative == MODULE.BASE else b"# synthetic reviewed fixture\n"
+            self.write(relative, data)
+            self.files[relative] = data
+            self.profile["requiredFiles"][relative] = MODULE.git_blob(data)
+        for relative in self.profile["additionalRequiredPaths"]:
+            self.write(relative, b"# synthetic build dependency fixture\n")
+        self.registry = b"# user comment must survive\nPRODUCT_MAKEFILES := existing.mk\n"
+        self.write(MODULE.REGISTRY, self.registry)
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def write(self, relative, data):
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+
+    def snapshot(self):
+        return {str(p.relative_to(self.root)): p.read_bytes()
+                for p in self.root.rglob("*") if p.is_file()}
+
+    def plan(self):
+        return MODULE.make_plan(self.root, self.profile)
+
+    def apply(self):
+        root, observed, changes = self.plan()
+        MODULE.apply_plan(root, observed, changes)
+        return changes
+
+    def test_default_plan_does_not_write(self):
+        before = self.snapshot()
+        _, _, changes = self.plan()
+        self.assertTrue(changes)
+        self.assertEqual(before, self.snapshot())
+
+    def test_apply_and_reapply_is_noop(self):
+        self.apply()
+        after = self.snapshot()
+        self.assertEqual(self.apply(), [])
+        self.assertEqual(after, self.snapshot())
+
+    def test_security_changes_and_backups(self):
+        self.apply()
+        base = (self.root / MODULE.BASE).read_bytes()
+        self.assertIn(b"ro.adb.secure=1", base)
+        self.assertIn(b"persist.sys.usb.config=mtp", base)
+        self.assertNotIn(b"ro.adb.secure=0", base)
+        self.assertEqual((self.root / (MODULE.BASE + ".ctz-original")).read_bytes(), self.base_original)
+        registry = (self.root / MODULE.REGISTRY).read_bytes()
+        self.assertTrue(registry.startswith(self.registry))
+        self.assertEqual((self.root / (MODULE.REGISTRY + ".ctz-original")).read_bytes(), self.registry)
+
+    def test_unknown_source_refused_before_writes(self):
+        self.write("build/make/core/Makefile", b"# user-edited\n")
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_partial_security_patch_refused(self):
+        self.write(MODULE.BASE, self.base_original.replace(b"ro.adb.secure=0", b"ro.adb.secure=1"))
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_missing_dependency_refused(self):
+        (self.root / "vendor/vndk/vndk.mk").unlink()
+        before = self.snapshot()
+        with self.assertRaises(OSError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_modified_dependency_refused(self):
+        self.write("vendor/vndk/vndk.mk", b"# different dependency\n")
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_existing_different_product_not_overwritten(self):
+        self.write("device/phh/treble/suiram_ctz10.mk", b"# user content")
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_existing_backup_not_overwritten(self):
+        self.write(MODULE.BASE + ".ctz-original", b"# earlier backup")
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_registry_changed_after_install_refused(self):
+        self.apply()
+        path = self.root / MODULE.REGISTRY
+        path.write_bytes(path.read_bytes() + b"# subsequent user edit\n")
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_duplicate_registration_refused(self):
+        self.write(MODULE.REGISTRY, MODULE.BLOCK.encode() * 2)
+        with self.assertRaises(ValueError):
+            self.apply()
+
+    def test_new_registry_when_not_generated(self):
+        (self.root / MODULE.REGISTRY).unlink()
+        self.apply()
+        self.assertEqual((self.root / MODULE.REGISTRY).read_text(), MODULE.BLOCK)
+        self.assertEqual(self.apply(), [])
+
+    def test_registry_without_final_newline_preserved(self):
+        self.write(MODULE.REGISTRY, b"PRODUCT_MAKEFILES := user.mk")
+        self.apply()
+        self.assertEqual(self.apply(), [])
+        self.assertEqual((self.root / (MODULE.REGISTRY + ".ctz-original")).read_bytes(), b"PRODUCT_MAKEFILES := user.mk")
+
+    def test_changes_after_check_refused(self):
+        root, observed, changes = self.plan()
+        self.write(MODULE.REGISTRY, b"# concurrent edit\n")
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            MODULE.apply_plan(root, observed, changes)
+        self.assertEqual(before, self.snapshot())
+
+    def test_symlink_output_refused(self):
+        outside = Path(self.temp.name) / "outside"
+        outside.mkdir()
+        (self.root / "vendor/suiram").symlink_to(outside, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(list(outside.iterdir()), [])
+
+    @unittest.skipUnless(shutil.which("make"), "GNU Make needed for recipe expansion test")
+    def test_recipe_locale_and_board_expansion_not_full_android_build(self):
+        self.apply()
+        self.write("device/phh/treble/base-pre.mk", b"# empty dependency fixture\n")
+        # This small harness checks recipe expressions only, not AOSP inheritance or compilation.
+        makefile = ("inherit-product = $(eval include $(1))\n"
+                    "define get-default-product-locale\n"
+                    "$(strip $(subst _,-, $(firstword $(1))))\n"
+                    "endef\n"
+                    "include device/phh/treble/suiram_ctz10.mk\n"
+                    "all:\n"
+                    "\t@echo locale=$(call get-default-product-locale,$(PRODUCT_LOCALES))\n"
+                    "\t@echo locales=$(PRODUCT_LOCALES)\n"
+                    "\t@echo board=$(PRODUCT_DEVICE)\n"
+                    "\t@echo packages=$(PRODUCT_PACKAGES)\n"
+                    "\t@echo properties=$(PRODUCT_SYSTEM_DEFAULT_PROPERTIES)\n")
+        result = subprocess.run(["make", "-f", "-", "--no-print-directory"], cwd=self.root,
+                                input=makefile, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("locale=ja-JP", result.stdout)
+        self.assertIn("locales=ja_JP en_US", result.stdout)
+        self.assertIn("board=phhgsi_arm64_ab", result.stdout)
+        self.assertIn("properties=ro.adb.secure=1 persist.sys.usb.config=mtp", result.stdout)
+        self.assertNotIn("phh-su", result.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()
