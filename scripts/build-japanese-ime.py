@@ -65,7 +65,7 @@ def source_plan(source, profile):
     app = replace_once(app, 'abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"',
                        'abiFilters "armeabi-v7a", "arm64-v8a"')
     for flavor in ('master', 'develop'):
-        app = replace_once(app, 'signingConfig signingConfigs.' + flavor, 'signingConfig null')
+        app = replace_once(app, 'signingConfig signingConfigs.' + flavor, '// CTZ unsigned flavor')
     signing = '// CTZ unsigned build: no private signing configurations.\n'
     application = ('APP_ABI := armeabi-v7a arm64-v8a\n'
                    'APP_PLATFORM := android-24\n')
