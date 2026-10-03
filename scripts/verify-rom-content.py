@@ -130,7 +130,7 @@ def verify_image(image):
         result = inspect_ext4(raw)
     return {'status': 'filesystem-and-content-checked', 'imageSHA256': file_sha256(image),
             'geometry': geometry, **result, 'filesystemCheck': 'e2fsck -f -n exit 0',
-            'bootTested': False, 'hardwareTested': False, 'gmsIncluded': False, 'flashReady': False,
+            'bootTested': False, 'hardwareTested': False, 'gmsTested': False, 'flashReady': False,
             'limits': 'File presence and ELF/property checks do not establish app behavior, AVB or device boot.'}
 
 
