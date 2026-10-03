@@ -87,3 +87,5 @@ try {
     # Only the unique directory created by this test is removed.
     Remove-Item -LiteralPath $temp -Recurse -Force
 }
+# All asserted negative subprocess cases passed; do not leak their exit code.
+exit 0

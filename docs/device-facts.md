@@ -36,7 +36,7 @@ kernelのAndroid 10互換性、解除状態、復旧に使える純正イメー�
 - [CTZ stock build.prop](https://github.com/s1204IT/DchaLibraries-CTZ/blob/main/Common/build.prop)
 - [CTZ stock vendor_build.prop](https://github.com/s1204IT/DchaLibraries-CTZ/blob/main/Common/vendor_build.prop)
 - [CTZ stock default.prop](https://github.com/s1204IT/DchaLibraries-CTZ/blob/main/Common/default.prop)
-- [EasyBLU（機種・タッチパネル差分）](https://github.com/s1204IT/EasyBLU)
+- [EasyBLU（タッチパネル差分のソース）](https://github.com/Kobold831/EasyBLU/blob/59d56f3ff412e3bcce2fc5dfcf3aea8459b8894f/app/src/main/java/com/saradabar/easyblu/MainActivity.java)
 - [AOSP GSIの構成・前提条件](https://source.android.com/docs/core/tests/vts/gsi)
 - [PHH Android 10 v222の上流配布](https://github.com/phhusson/treble_experimentations/releases/tag/v222)
 
