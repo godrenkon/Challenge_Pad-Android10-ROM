@@ -28,6 +28,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - name: Install pinned Android tools
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;28.1.13356709'
       - uses: gradle/actions/setup-gradle@v4
@@ -36,9 +39,9 @@ jobs:
       - name: Build unsigned Japanese IME from reviewed source
         run: python3 scripts/build-japanese-ime.py ime-source --output "$RUNNER_TEMP/ctz-japanese-ime" --run
       - uses: actions/upload-artifact@v4
-        if: success()
+        if: always()
         with:
           name: ctz-japanese-ime-unsigned
           path: ${{ runner.temp }}/ctz-japanese-ime
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30

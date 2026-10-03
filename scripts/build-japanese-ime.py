@@ -160,6 +160,8 @@ def run_build(source, output, profile, files, changes, gradle):
                                     stderr=subprocess.STDOUT, check=False, timeout=1500)
             receipt['exitCode'] = result.returncode
             if result.returncode:
+                # Keep full logs in the artifact; show the compiler's final error in Actions too.
+                print((output / 'build.log').read_text(encoding='utf-8', errors='replace')[-16000:], file=sys.stderr)
                 raise ValueError('Japanese IME build failed; see build.log')
         candidates = list((source / 'app/build/outputs/apk/develop/release').glob('*.apk'))
         if len(candidates) != 1:
