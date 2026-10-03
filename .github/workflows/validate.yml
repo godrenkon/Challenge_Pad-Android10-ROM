@@ -28,6 +28,7 @@ jobs:
                        'docs/source-product.ja.md', 'gsi/suiram_ctz10.mk', 'gsi/ctz_locale.mk',
                        'scripts/prepare-gsi-source.py', 'config/source-profile.json',
                        'scripts/lock-source.py', 'scripts/build-ctz.py', 'manifest/ctz-android10.xml',
+                       'scripts/build-workflow.py', 'docs/build-workflow.ja.md',
                        'config/source-provenance.json', 'docs/source-build.ja.md',
                        'device/benesse/ctz/BoardConfig.mk', 'scripts/inspect-ctz.ps1']:
               assert pathlib.Path(name).is_file(), name

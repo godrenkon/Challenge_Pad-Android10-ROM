@@ -17,6 +17,9 @@ GIB = 1024 ** 3
 # Conservative project preflight policy, not official Android 10 minimum requirements.
 MIN_FREE = 150 * GIB
 MIN_MEMORY = 8 * GIB
+SOURCE_PATCH_PATHS = {"device/phh/treble": {
+    "base.mk", "base.mk.ctz-original", "AndroidProducts.mk",
+    "AndroidProducts.mk.ctz-original", "suiram_ctz10.mk"}}
 BUILD_COMMAND = ('set -eo pipefail\n'
                  'source build/envsetup.sh\n'
                  'lunch suiram_ctz10-userdebug\n'
@@ -71,10 +74,7 @@ def validate_sources(root, locked_manifest):
     prepared_root, _, changes = PREPARE.make_plan(root)
     if changes:
         raise ValueError("Source recipe patch is not fully installed; review prepare-gsi-source.py first")
-    allowed = {"device/phh/treble": {
-        "base.mk", "base.mk.ctz-original", "AndroidProducts.mk",
-        "AndroidProducts.mk.ctz-original", "suiram_ctz10.mk"}}
-    inspect_sources(prepared_root, recipe, heads, allowed)
+    inspect_sources(prepared_root, recipe, heads, SOURCE_PATCH_PATHS)
     return prepared_root
 
 
@@ -102,7 +102,8 @@ def execute_build(root, records, jobs, lock_data):
                "startedAt": datetime.now(timezone.utc).isoformat(),
                "sourceManifestSHA256": sha256_file(records / "source-locked.xml"),
                "toolingSHA256": {name: sha256_file(ROOT / "scripts" / name)
-                                  for name in ("build-ctz.py", "source_manifest.py", "prepare-gsi-source.py")},
+                                  for name in ("build-ctz.py", "source_manifest.py", "prepare-gsi-source.py",
+                                               "inspect-system-image.py")},
                "host": {"system": platform.system(), "release": platform.release(),
                         "architecture": platform.machine(), "python": platform.python_version()},
                "status": "building", "bootTested": False, "flashReady": False}
@@ -116,7 +117,7 @@ def execute_build(root, records, jobs, lock_data):
         receipt["exitCode"] = result.returncode
         if result.returncode:
             raise ValueError("Android build failed; see " + str(records / "build.log"))
-        image = records / "out/target/product/phhgsi_arm64_ab/system.img"
+        image = PREPARE.safe_path(records, "out/target/product/phhgsi_arm64_ab/system.img")
         if image.is_symlink() or not image.is_file():
             raise ValueError("Build did not produce a regular system.img in the dedicated OUT_DIR")
         receipt["image"] = {"path": str(image), "SHA256": sha256_file(image), **IMAGE.inspect_image(image)}

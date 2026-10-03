@@ -9,5 +9,6 @@
 - [実機検証の工程](docs/bring-up.md)
 - [日本語標準のGSIソース設定](docs/source-product.ja.md)
 - [全ソース同期・commit固定・ビルド](docs/source-build.ja.md)
+- [日本語標準の工程ランナー](docs/build-workflow.ja.md)
 
 [English summary](README.en.md)

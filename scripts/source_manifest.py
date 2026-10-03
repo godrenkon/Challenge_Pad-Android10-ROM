@@ -142,6 +142,13 @@ def status_paths(data):
     return paths
 
 
+def assert_clear_index(path):
+    # These flags hide modified files from Git status/diff without changing the files.
+    for entry in git(path, "ls-files", "-v", "-z").split(b"\0"):
+        if entry and (entry[:1] == b"S" or entry[:1].islower()):
+            raise ValueError("Hidden-change index flag in source project: " + str(path))
+
+
 def inspect_sources(root, recipe=None, expected_heads=None, allowed_changes=None):
     root = Path(root).resolve(strict=True)
     if not root.is_dir() or root == Path(root.anchor):
@@ -176,6 +183,7 @@ def inspect_sources(root, recipe=None, expected_heads=None, allowed_changes=None
             raise ValueError("Unpinned source revision: " + relative)
         if head != expected or (expected_heads is not None and head != expected_heads[relative]):
             raise ValueError("Source commit differs from recipe/lock: " + relative)
+        assert_clear_index(path)
         # Include ignored files: an ignored Android.mk/Android.bp can still affect the build.
         status = git(path, "status", "--porcelain=v1", "--untracked-files=all", "--ignored=matching", "-z")
         if status_paths(status) - (allowed_changes or {}).get(relative, set()):

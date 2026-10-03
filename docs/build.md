@@ -12,7 +12,8 @@
 全ソース同期・コンパイル・system.img生成はまだ完了していません。
 [統合manifestとソース固定/ビルド手順](source-build.ja.md)を追加しました。
 AOSPタグと27個の固定commitを統合した762プロジェクトが対象です。
-実際の全同期とAndroidビルドは未実施で、現在の空き約28GBの環境では進めていません。
+実際の全同期とAndroidビルドは未実施で、ディスク全体約32GiBの環境では進めていません。
+[工程ランナー](build-workflow.ja.md)で準備からビルドまでをまとめ、失敗後の再開も記録付きで行えます。
 
 `device/benesse/ctz` は将来用の雛形です。stock bootヘッダー、kernel integration、
 vendor/HAL、partition geometryが足りないため、BoardConfig.mkは明示的にビルドを停止します。

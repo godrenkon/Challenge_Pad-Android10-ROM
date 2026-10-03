@@ -117,6 +117,17 @@ class CheckoutTest(unittest.TestCase):
                 if filename.startswith("ignored/"):
                     path.parent.rmdir()
 
+    def test_assume_unchanged_and_skip_worktree_refused(self):
+        for flag in ("--assume-unchanged", "--skip-worktree"):
+            self.cmd("update-index", flag, "tracked.txt")
+            (self.repo / "tracked.txt").write_text("hidden source change\n")
+            self.assertEqual(self.cmd("status", "--porcelain"), "")
+            with self.assertRaises(ValueError):
+                self.inspect()
+            self.cmd("update-index", "--no-assume-unchanged", "tracked.txt")
+            self.cmd("update-index", "--no-skip-worktree", "tracked.txt")
+            self.cmd("checkout", "--", "tracked.txt")
+
     def test_allowed_patch_paths_only(self):
         (self.repo / "approved.mk").write_text("fixture patch\n")
         self.assertEqual(self.inspect(allowed_changes={"frameworks/example": {"approved.mk"}}),

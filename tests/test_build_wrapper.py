@@ -81,6 +81,19 @@ PY""")
             BUILD.execute_build(self.root, self.records, 2, self.lock)
         self.assertEqual(self.receipt()["status"], "failed-or-interrupted")
 
+    def test_symlinked_image_parent_is_failure(self):
+        old = Path(self.temp.name) / "old-output"
+        old.mkdir()
+        (old / "system.img").write_bytes(b"old image must not be accepted")
+        self.script("python3 - <<'PY'\n"
+                    "import os,pathlib\n"
+                    "p=pathlib.Path(os.environ['OUT_DIR'])/'target/product'\n"
+                    "p.mkdir(parents=True)\n"
+                    f"(p/'phhgsi_arm64_ab').symlink_to({str(old)!r},target_is_directory=True)\nPY")
+        with self.assertRaisesRegex(ValueError, "symlink"):
+            BUILD.execute_build(self.root, self.records, 2, self.lock)
+        self.assertEqual(self.receipt()["status"], "failed-or-interrupted")
+
     def test_default_check_does_not_run_or_create_outputs(self):
         lock = Path(self.temp.name) / "locked.xml"
         lock.write_bytes(self.lock)
