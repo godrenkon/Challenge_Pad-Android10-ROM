@@ -64,8 +64,9 @@ def source_plan(source, profile):
                        'ndkVersion "' + profile['ndkVersion'] + '"')
     app = replace_once(app, 'abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"',
                        'abiFilters "armeabi-v7a", "arm64-v8a"')
-    # Empty configs let release packaging run without upstream private keystores.
-    signing = 'android { signingConfigs { master {} develop {} } }\n'
+    for flavor in ('master', 'develop'):
+        app = replace_once(app, 'signingConfig signingConfigs.' + flavor, 'signingConfig null')
+    signing = '// CTZ unsigned build: no private signing configurations.\n'
     application = ('APP_ABI := armeabi-v7a arm64-v8a\n'
                    'APP_PLATFORM := android-24\n')
     native = files['app/src/main/jni/libwnnDictionary/Android.mk'].decode('utf-8')
@@ -155,7 +156,7 @@ def run_build(source, output, profile, files, changes, gradle):
             log.write(version.stdout)
             if ('Gradle ' + profile['gradleVersion'] + '\n').encode() not in version.stdout:
                 raise ValueError('Gradle version differs from pinned build tool')
-            result = subprocess.run([gradle, '--no-daemon', '--console=plain', '--stacktrace',
+            result = subprocess.run([gradle, '--no-daemon', '--console=plain',
                                      ':app:assembleDevelopRelease'], cwd=source, stdout=log,
                                     stderr=subprocess.STDOUT, check=False, timeout=1500)
             receipt['exitCode'] = result.returncode

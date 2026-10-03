@@ -24,7 +24,7 @@ class JapaneseImeTests(unittest.TestCase):
         self.source.mkdir()
         self.profile = json.loads(IME.PROFILE.read_text())
         fixture = {
-            'app/build.gradle': 'targetSdk 36\n// ndkVersion "26.3.11579264"\nabiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"\n',
+            'app/build.gradle': 'targetSdk 36\n// ndkVersion "26.3.11579264"\nabiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"\nsigningConfig signingConfigs.master\nsigningConfig signingConfigs.develop\n',
             'build.gradle': 'jcenter()\njcenter()\n',
             'app/src/main/jni/libwnnDictionary/Android.mk': '-fno-inline-small-functions\nLOCAL_STATIC_LIBRARIES :=\n',
             'app/src/main/jni/Application.mk': 'APP_PLATFORM := android-3\n',
@@ -49,6 +49,8 @@ class JapaneseImeTests(unittest.TestCase):
         _, _, changes = IME.source_plan(self.source, self.profile)
         self.assertIn('targetSdk 29', changes['app/build.gradle'].decode())
         self.assertNotIn('x86', changes['app/build.gradle'].decode())
+        self.assertNotIn('signingConfigs.', changes['app/build.gradle'].decode())
+        self.assertNotIn('android {', changes['app/signingConfigs.gradle'].decode())
         self.assertIn('APP_PLATFORM := android-24', changes['app/src/main/jni/Application.mk'].decode())
         self.assertEqual(before, {p: p.read_bytes() for p in before})
 
