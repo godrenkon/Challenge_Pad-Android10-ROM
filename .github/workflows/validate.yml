@@ -1,0 +1,28 @@
+name: Validate source tree
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check shell syntax
+        run: |
+          bash -n scripts/extract-stock.sh
+      - name: Check required files
+        run: |
+          test -f README.md
+          test -f device/benesse/ctz/BoardConfig.mk
+          test -f device/benesse/ctz/lineage_ctz.mk
+          test -f docs/bring-up.md
+      - name: Reject accidental binary blobs
+        run: |
+          if find . -path ./.git -prune -o -type f \
+             \( -name '*.img' -o -name '*.bin' -o -name '*.so' -o -name '*.apk' \) \
+             -print -quit | grep -q .; then
+            echo "Binary/proprietary file detected in source tree" >&2
+            exit 1
+          fi
