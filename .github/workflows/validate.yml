@@ -40,18 +40,17 @@ jobs:
                    and '.git' not in p.parts and p.suffix.lower() in forbidden]
           assert not files, f'Binary/proprietary files detected: {files}'
           PY
-  powershell:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            shell: powershell
-          - os: ubuntu-22.04
-            shell: pwsh
-    runs-on: ${{ matrix.os }}
+  powershell-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Offline tools tests (no downloads, no device access)
-        shell: ${{ matrix.shell }}
+      - name: Windows PowerShell 5.1 offline tests
+        shell: powershell
+        run: ./tests/test-tools.ps1
+  powershell-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell 7 offline tests
+        shell: pwsh
         run: ./tests/test-tools.ps1
