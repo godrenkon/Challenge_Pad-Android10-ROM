@@ -1,0 +1,86 @@
+name: Compile Android 10 systemimage
+
+on:
+  push:
+    paths:
+      - '.github/workflows/rom-build.yml'
+      - 'scripts/run-github-rom-build.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  systemimage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 355
+    env:
+      REPO_URL: https://github.com/aosp-mirror/tools_repo
+      REPO_REV: 5998c0b50612af80c8a710b79692313e7f84c64a
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Reclaim only preinstalled tools on this disposable runner
+        run: |
+          df -h
+          free -h
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift
+          sudo docker image prune -af
+          df -h
+      - name: Install Android build host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison build-essential curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush python3 rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+      - name: Install fixed upstream Repo launcher
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/aosp-mirror/tools_repo "$RUNNER_TEMP/ctz-repo-launcher"
+          git -C "$RUNNER_TEMP/ctz-repo-launcher" checkout --detach "$REPO_REV"
+          mkdir -p "$RUNNER_TEMP/ctz-bin"
+          ln -s "$RUNNER_TEMP/ctz-repo-launcher/repo" "$RUNNER_TEMP/ctz-bin/repo"
+          echo "$RUNNER_TEMP/ctz-bin" >> "$GITHUB_PATH"
+      - name: Sync all fixed sources and compile the ROM system image
+        run: python3 scripts/run-github-rom-build.py "$RUNNER_TEMP/ctz-rom"
+      - name: Gather stage logs and build receipts
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/ctz-rom-report"
+          python3 - <<'PY'
+          import os, pathlib, shutil
+          root = pathlib.Path(os.environ['RUNNER_TEMP'])
+          work = root / 'ctz-rom'
+          report = root / 'ctz-rom-report'
+          records = work / 'records'
+          paths = [work / 'workflow-state.json', records / 'source-locked.xml']
+          paths += list((records / 'logs').glob('*.log'))
+          for attempt in records.glob('build-attempt-*'):
+              paths += [attempt / 'build.log', attempt / 'build-receipt.json', attempt / 'source-locked.xml']
+          for path in paths:
+              if path.is_file() and not path.is_symlink():
+                  destination = report / path.relative_to(work)
+                  destination.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copyfile(path, destination)
+          PY
+          df -h > "$RUNNER_TEMP/ctz-rom-report/final-disk.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android10-systemimage-build-report
+          path: ${{ runner.temp }}/ctz-rom-report
+          retention-days: 30
+      - name: Compress produced system image
+        if: success()
+        run: |
+          image=$(find "$RUNNER_TEMP/ctz-rom/records" -path '*/out/target/product/phhgsi_arm64_ab/system.img' -type f)
+          test -n "$image"
+          mkdir -p "$RUNNER_TEMP/ctz-systemimage"
+          xz -T2 -c "$image" > "$RUNNER_TEMP/ctz-systemimage/suiram-ctz-android10-system.img.xz"
+          cd "$RUNNER_TEMP/ctz-systemimage"
+          sha256sum suiram-ctz-android10-system.img.xz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: android10-systemimage-engineering-untested
+          path: ${{ runner.temp }}/ctz-systemimage
+          if-no-files-found: error
+          retention-days: 30

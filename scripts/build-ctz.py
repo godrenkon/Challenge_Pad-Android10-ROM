@@ -59,7 +59,7 @@ def host_report(destination):
     memory = effective_memory() if platform.system() == "Linux" else 0
     free = shutil.disk_usage(destination).free
     if free < MIN_FREE:
-        blockers.append("Project policy requires 150 GiB free on the build-output filesystem")
+        blockers.append("Project policy requires " + str(MIN_FREE // GIB) + " GiB free on the build-output filesystem")
     if memory < MIN_MEMORY:
         blockers.append("Project policy requires 8 GiB effective memory")
     return {"system": platform.system(), "architecture": platform.machine(),

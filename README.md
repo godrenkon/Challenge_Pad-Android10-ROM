@@ -25,6 +25,7 @@
 [全ソースの同期・commit固定・ビルド](docs/source-build.ja.md)はコードと手順を実装済みですが、
 本物の全同期・コンパイルは未実施です。現環境のディスク全体約32GiBではフルビルドに進めていません。
 [工程ランナーの使い方](docs/build-workflow.ja.md)も公開しています。
+[OS本体のクラウドビルド](docs/cloud-rom-build.ja.md)を追加し、全ソース同期からsystem.img生成までを実際に試行します。
 [日本語入力APKのビルド](docs/japanese-ime.ja.md)はROMと別工程です。ROMへの組み込みと実機での変換確認は未実施です。
 
 ## 最初の実装方式
