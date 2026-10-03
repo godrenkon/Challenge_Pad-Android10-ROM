@@ -66,6 +66,9 @@ def source_plan(source, profile):
                        'abiFilters "armeabi-v7a", "arm64-v8a"')
     for flavor in ('master', 'develop'):
         app = replace_once(app, 'signingConfig signingConfigs.' + flavor, '// CTZ unsigned flavor')
+    # This artifact targets an Android 10 system image, not Google Play distribution.
+    # Keep the other release lint checks enabled.
+    app += "\nandroid { lint { disable 'ExpiredTargetSdkVersion' } }\n"
     signing = '// CTZ unsigned build: no private signing configurations.\n'
     application = ('APP_ABI := armeabi-v7a arm64-v8a\n'
                    'APP_PLATFORM := android-24\n')

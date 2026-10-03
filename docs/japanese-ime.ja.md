@@ -30,6 +30,8 @@ APKコンパイル成功はAndroid 10 ROMの完成やCTZでの動作確認を意
 上流の非公開keystore設定を空の設定に置き換え、targetSdkとNDKを固定、x86を除外します。
 古いNDKのarmeabi/android-3指定と廃止されたコンパイラオプションを除去し、libdlを明示します。
 jcenterも使いません。アプリ本体と辞書データは改変しません。
+Android 10 ROM用にtargetSdk 29を選ぶため、Google Play配布向けのLint項目
+`ExpiredTargetSdkVersion` だけを除外します。それ以外のrelease Lintは有効です。
 Gradle依存は上流のバージョン指定を使用し、全依存の内容ハッシュ固定までは行っていません。
 したがって同じAPKのbit-for-bit再現性は未保証です。
 
