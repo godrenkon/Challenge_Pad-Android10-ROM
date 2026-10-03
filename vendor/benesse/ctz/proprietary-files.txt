@@ -1,0 +1,3 @@
+# Proprietary files required for CTZ Android 10 bring-up.
+# Add entries only after extraction and license review.
+# Never commit binary blobs from a stock image to this public repository.
