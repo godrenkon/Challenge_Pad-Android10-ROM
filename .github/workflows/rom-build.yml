@@ -24,6 +24,7 @@ jobs:
       REPO_URL: https://github.com/aosp-mirror/tools_repo
       REPO_REV: 5998c0b50612af80c8a710b79692313e7f84c64a
       CTZ_COMPRESSED_STORAGE: 'true'
+      CTZ_COMPILER_CACHE: 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,7 +39,17 @@ jobs:
       - name: Install Android build host dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison btrfs-progs btrfs-compsize build-essential curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush python3 rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+          sudo apt-get install -y bc bison btrfs-progs btrfs-compsize build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush python3 rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+      - name: Restore compiler results from the same recipe
+        id: compiler-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/ctz-compiler-cache
+          key: ctz-compiler-v1-${{ runner.os }}-${{ hashFiles('manifest/ctz-android10.xml', 'config/source-profile.json', 'scripts/build-ctz.py', 'scripts/prepare-gsi-source.py', 'gsi/*.mk') }}
+      - name: Set compiler cache capacity
+        run: |
+          mkdir -p "$RUNNER_TEMP/ctz-compiler-cache"
+          CCACHE_DIR="$RUNNER_TEMP/ctz-compiler-cache" ccache --max-size=7G
       - name: Prepare compressed build storage and verify kernel compression
         run: python3 scripts/prepare-cloud-storage.py "$RUNNER_TEMP"
       - name: Install fixed upstream Repo launcher
@@ -51,6 +62,17 @@ jobs:
       - name: Sync all fixed sources and compile the ROM system image
         timeout-minutes: 330
         run: python3 -u scripts/run-github-rom-build.py "$RUNNER_TEMP/ctz-rom-storage/ctz-rom"
+      - name: Record compiler cache statistics
+        if: always()
+        run: |
+          CCACHE_DIR="$RUNNER_TEMP/ctz-compiler-cache" ccache --cleanup
+          CCACHE_DIR="$RUNNER_TEMP/ctz-compiler-cache" ccache --show-stats
+      - name: Preserve compiler results even when the attempt times out
+        if: always() && steps.compiler-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/ctz-compiler-cache
+          key: ${{ steps.compiler-cache.outputs.cache-primary-key }}
       - name: Gather stage logs and build receipts
         if: always()
         run: |
