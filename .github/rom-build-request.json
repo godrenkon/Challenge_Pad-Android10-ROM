@@ -1,9 +1,10 @@
 {
   "schemaVersion": 1,
-  "requestId": "2026-10-04-disk-capacity-02",
-  "basedOn": "9174b029119058903224a86b71b3a9bffbafa0f9",
-  "reason": "Replace the disk-exhausting attempt with the pinned Linux-only host recipe and verified compressed build storage.",
-  "storageValidationRun": 37188221202,
+  "requestId": "2026-10-04-compiler-cache-01",
+  "basedOn": "4fff04916b1d78e3ef725079c1e9537066605169",
+  "reason": "Retry the time-limited run with a bounded compiler cache that survives failure. A cold-cache run can still time out.",
+  "validationRun": 37210266820,
+  "previousRun": 37188392199,
   "bootTested": false,
   "flashReady": false
 }
