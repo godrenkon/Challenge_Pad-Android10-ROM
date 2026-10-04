@@ -26,6 +26,15 @@ ATTEMPT_SECONDS = 315 * 60
 SYNC_JOBS = 4
 
 
+def disk_free(workspace):
+    # The compressed filesystem is backed by a sparse file. Its virtual free
+    # space must never hide exhaustion of the real runner filesystem.
+    paths = [workspace.parent]
+    if os.environ.get('CTZ_COMPRESSED_STORAGE') == 'true':
+        paths.append(Path(os.environ['RUNNER_TEMP']))
+    return min(shutil.disk_usage(path).free for path in paths)
+
+
 def compiler_jobs(memory_bytes, cpu_count):
     # A public runner reported ~15.6 GiB usable RAM. Use its four CPUs, but
     # retain the lower-memory policy and never scale beyond four compiler jobs.
@@ -87,7 +96,7 @@ def supervise(command, workspace, *, budget=ATTEMPT_SECONDS, interval=10):
     try:
         while process.poll() is None:
             follow_logs(workspace, offsets)
-            free = shutil.disk_usage(workspace.parent).free
+            free = disk_free(workspace)
             elapsed = time.monotonic() - started
             print(json.dumps({'cloudHeartbeat': True, 'elapsedSeconds': round(elapsed),
                               'freeBytes': free, 'reportReserveBytes': REPORT_RESERVE_FREE}), flush=True)
@@ -120,7 +129,7 @@ def cloud_stage(stage, context, state, log):
         FLOW.perform_stage(stage, dict(context, jobs=SYNC_JOBS), state, log)
     else:
         FLOW.perform_stage(stage, context, state, log)
-    log.write((json.dumps({'freeBytesAfterStage': shutil.disk_usage(context['records']).free,
+    log.write((json.dumps({'freeBytesAfterStage': disk_free(context['records']),
                            'effectiveMemoryBytes': FLOW.BUILD.effective_memory()}) + '\n').encode())
 
 
@@ -144,6 +153,8 @@ def main(argv=None):
         raise ValueError('Cloud workspace must be inside RUNNER_TEMP')
     FLOW.BUILD.MIN_FREE = OUTPUT_ATTEMPT_FREE
     host = FLOW.BUILD.host_report(workspace.parent)
+    if os.environ.get('CTZ_COMPRESSED_STORAGE') == 'true':
+        host['freeOutputBytes'] = min(host['freeOutputBytes'], disk_free(workspace))
     jobs = compiler_jobs(host['effectiveMemoryBytes'], os.cpu_count())
     if host['freeOutputBytes'] < SOURCE_ATTEMPT_FREE:
         host['blockers'].append('Experimental cloud attempt requires at least 60 GiB free before sync')

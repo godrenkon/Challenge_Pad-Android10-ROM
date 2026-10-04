@@ -120,6 +120,32 @@ class CloudBuildTests(unittest.TestCase):
             CLOUD.supervise([sys.executable, '-c', 'import time; time.sleep(5)'], self.workspace,
                              interval=0.01)
 
+    def test_sparse_volume_cannot_hide_low_backing_disk(self):
+        large = type('Disk', (), {'free': 200 * 1024 ** 3})()
+        small = type('Disk', (), {'free': CLOUD.REPORT_RESERVE_FREE - 1})()
+        def usage(path):
+            return small if Path(path) == self.root else large
+        nested = self.root / 'ctz-rom-storage/ctz-rom'
+        nested.parent.mkdir()
+        with self.env(), patch.dict(os.environ, {'CTZ_COMPRESSED_STORAGE': 'true'}), \
+                patch.object(CLOUD.shutil, 'disk_usage', side_effect=usage), \
+                redirect_stdout(io.StringIO()), self.assertRaisesRegex(ValueError, 'disk exhaustion'):
+            CLOUD.supervise([sys.executable, '-c', 'import time; time.sleep(5)'], nested, interval=0.01)
+
+    def test_backing_disk_is_checked_before_sync_despite_virtual_capacity(self):
+        nested = self.root / 'ctz-rom-storage/ctz-rom'
+        nested.parent.mkdir()
+        large = type('Disk', (), {'free': 200 * 1024 ** 3})()
+        small = type('Disk', (), {'free': CLOUD.SOURCE_ATTEMPT_FREE - 1})()
+        report = {'blockers': [], 'freeOutputBytes': large.free, 'effectiveMemoryBytes': 16 * 1024 ** 3}
+        with self.env(), patch.dict(os.environ, {'CTZ_COMPRESSED_STORAGE': 'true'}), \
+                patch.object(CLOUD.FLOW.BUILD, 'host_report', return_value=report), \
+                patch.object(CLOUD.shutil, 'disk_usage', side_effect=lambda p: small if Path(p) == self.root else large), \
+                patch.object(CLOUD.shutil, 'which', return_value='/fixture/repo'), \
+                patch.object(CLOUD.FLOW, 'run_pipeline') as run, redirect_stdout(io.StringIO()):
+            self.assertEqual(CLOUD.main(['--worker', str(nested)]), 2)
+            run.assert_not_called()
+
     def test_streams_compiler_log_incrementally(self):
         log = self.workspace / 'records/build-attempt-5/build.log'
         log.parent.mkdir(parents=True)

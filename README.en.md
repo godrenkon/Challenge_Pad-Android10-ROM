@@ -37,7 +37,7 @@ The [actual IME compile and archive checks passed](https://github.com/godrenkon/
 this result does not demonstrate a full Android build or device operation.
 See the Japanese-first [source recipe guide](docs/source-product.ja.md).
 
-The [integrated manifest](manifest/ctz-android10.xml) contains 762 projects: AOSP is pinned to
+The [integrated manifest](manifest/ctz-android10.xml) contains 753 projects: AOSP is pinned to
 `android-10.0.0_r41`, while 27 PHH/additional components use fixed commits.
 `lock-source.py` inspects local Git checkouts and writes a full commit manifest before patching.
 `build-ctz.py` checks that lock and the approved patch, then builds only with explicit `--run`.

@@ -16,7 +16,7 @@ class RecipeTest(unittest.TestCase):
     def test_committed_recipe_and_pins(self):
         root = SM.checked_recipe()
         projects = SM.project_map(root)
-        self.assertEqual(len(projects), 762)
+        self.assertEqual(len(projects), 753)
         pinned = [p for p in projects.values() if SM.SHA.fullmatch(p.get("revision", ""))]
         self.assertEqual(len(pinned), 27)
         self.assertEqual(root.find("default").get("revision"), SM.TAG)
@@ -24,6 +24,16 @@ class RecipeTest(unittest.TestCase):
         self.assertIsNone(root.find("repo-hooks"))
         for name in ("vendor/magisk", "vendor/gapps", "vendor/foss", "vendor/gapps-go"):
             self.assertNotIn(name, projects)
+
+    def test_linux_recipe_keeps_target_and_linux_compilers(self):
+        projects = SM.project_map(SM.checked_recipe())
+        self.assertTrue(SM.LINUX_HOST_EXCLUSIONS.isdisjoint(projects))
+        for path in ("prebuilts/clang/host/linux-x86", "prebuilts/go/linux-x86",
+                     "prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9",
+                     "prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9",
+                     "frameworks/base", "system/core", "vendor/vndk"):
+            self.assertIn(path, projects)
+        self.assertFalse(any("darwin" in p.get("groups", "").split(",") for p in projects.values()))
 
     def test_cached_manifest_edit_refused(self):
         with tempfile.TemporaryDirectory() as td:

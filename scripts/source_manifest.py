@@ -11,6 +11,18 @@ ROOT = Path(__file__).resolve().parents[1]
 RECIPE = ROOT / "manifest/ctz-android10.xml"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 TAG = "refs/tags/android-10.0.0_r41"
+# This recipe is built on Linux. Exclude only the nine upstream projects
+# explicitly marked as Darwin-host prebuilts; keep target ARM/ARM64 sources.
+LINUX_HOST_EXCLUSIONS = frozenset({
+    "prebuilts/clang/host/darwin-x86",
+    "prebuilts/gcc/darwin-x86/aarch64/aarch64-linux-android-4.9",
+    "prebuilts/gcc/darwin-x86/arm/arm-linux-androideabi-4.9",
+    "prebuilts/gcc/darwin-x86/host/i686-apple-darwin-4.2.1",
+    "prebuilts/gcc/darwin-x86/mips/mips64el-linux-android-4.9",
+    "prebuilts/gcc/darwin-x86/x86/x86_64-linux-android-4.9",
+    "prebuilts/gdb/darwin-x86", "prebuilts/go/darwin-x86",
+    "prebuilts/python/darwin-x86/2.7.5",
+})
 
 
 def blob_sha(data):
@@ -66,6 +78,9 @@ def render_recipe():
         raise ValueError("AOSP manifest input differs from reviewed blob")
     base = parse_xml(raw)
     original = {p.get("path"): p for p in base.findall("project")}
+    darwin = {path for path, p in original.items() if "darwin" in p.get("groups", "").split(",")}
+    if darwin != LINUX_HOST_EXCLUSIONS:
+        raise ValueError("Darwin host exclusions differ from reviewed upstream project set")
     replacement_raw = (ROOT / "manifest/upstream/phh-replace.xml").read_bytes()
     if blob_sha(replacement_raw) != provenance["phh"]["replaceXmlBlob"]:
         raise ValueError("PHH replacement input differs from reviewed blob")
@@ -83,6 +98,10 @@ def render_recipe():
     if len(pins) != len(provenance["phh"]["projects"]) or not set(replacements).issubset(pins):
         raise ValueError("Incomplete or duplicate PHH pins")
     for path, p in original.items():
+        if path in LINUX_HOST_EXCLUSIONS:
+            if path in replacements or path in pins:
+                raise ValueError("Cannot exclude a pinned PHH replacement")
+            continue
         item = copy.deepcopy(replacements.get(path, p))
         if path in pins:
             pin = pins[path]

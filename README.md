@@ -16,7 +16,7 @@
 - Windows PowerShell 5.1 / Linux PowerShell 7向けのオフライン回帰テストとPythonテスト
 - 未確認のboot設定・fstabの適用を除去し、未完成の端末ビルドを明示的に停止
 - 日本語初期言語・英語追加の `suiram_ctz10-userdebug` ソース設定と、固定入力を照合する適用ツール
-- 762プロジェクトの統合manifest、全commitを記録するツール、明示的なsystemimageビルドと成否記録
+- 753プロジェクトの統合manifest、全commitを記録するツール、明示的なsystemimageビルドと成否記録
 - 日本語標準の工程ランナー。ソース取得・同期・固定・差分適用・ビルドをまとめ、失敗後の再開を記録
 - nicoWnnGの固定ソースから日本語IMEの未署名APKを作るビルド処理とGitHub Actions。APK単体の実コンパイル・形式検査が成功
 

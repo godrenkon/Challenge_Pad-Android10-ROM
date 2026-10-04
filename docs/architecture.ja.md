@@ -33,7 +33,7 @@ Web閲覧・アカウント利用の安全性、Google Play認証、アプリの
 
 上流ベース、CTZ差分、依存バージョン、ビルドログを固定して日本語標準の成果物を作る。
 [日本語GSI製品設定と適用ツール](source-product.ja.md)、
-[762プロジェクトの統合manifestとcommit記録/ビルドツール](source-build.ja.md)は実装済み。
+[753プロジェクトの統合manifestとcommit記録/ビルドツール](source-build.ja.md)は実装済み。
 AOSPはタグ、PHH/追加コンポーネントはcommitで指定する。
 実際の全同期・全commit記録・Androidビルドは未実施。
 matching kernel sourceとvendor条件がそろえば、端末専用AOSP/LineageOSツリーも検討する。

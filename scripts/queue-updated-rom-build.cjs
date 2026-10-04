@@ -4,6 +4,7 @@
 // recipe once; an unchanged recipe is never automatically retried in a loop.
 const INPUTS = [
   '.github/workflows/rom-build.yml', 'scripts/run-github-rom-build.py',
+  'scripts/prepare-cloud-storage.py',
   'scripts/build-workflow.py', 'scripts/build-ctz.py', 'scripts/source_manifest.py',
   'scripts/prepare-gsi-source.py', 'scripts/inspect-system-image.py',
   'config/source-profile.json', 'config/source-provenance.json',

@@ -56,6 +56,29 @@ jobs:
       - name: Windows PowerShell 5.1 offline tests
         shell: powershell
         run: ./tests/test-tools.ps1
+  cloud-storage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify the real runner supports compressed build storage
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift
+          sudo apt-get update
+          sudo apt-get install -y btrfs-progs compsize
+          python3 scripts/prepare-cloud-storage.py "$RUNNER_TEMP"
+          cd "$RUNNER_TEMP/ctz-rom-storage"
+          printf 'int main(void) { return 0; }\n' > smoke.c
+          cc smoke.c -o smoke
+          ./smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compressed-storage-check
+          path: ${{ runner.temp }}/ctz-storage-report.json
+          retention-days: 7
   powershell-linux:
     runs-on: ubuntu-22.04
     steps:

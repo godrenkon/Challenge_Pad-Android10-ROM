@@ -8,7 +8,7 @@ USBや端末接続はこのソースビルド工程には不要です。
 ## 固定した構成
 
 [ctz-android10.xml](../manifest/ctz-android10.xml) はAOSPの `android-10.0.0_r41` に、
-PHH側の固定27プロジェクトを統合した762プロジェクトのmanifestです。
+PHH側の固定27プロジェクトを統合し、上流でDarwin指定のMacホスト専用9プロジェクトを除いた、Linux用753プロジェクトのmanifestです。
 AOSP manifest自体はcommit `458a84154e391e7d0cd4f87ab17955bcfb3b4310` の内容を確認しました。
 AOSP側はタグ固定、PHH/追加側は40桁commit固定です。
 PHHの履歴はv222公開前のスナップショットを選んだもので、配布v222と完全一致する証明ではありません。
@@ -45,7 +45,7 @@ repo init -u https://github.com/godrenkon/Challenge_Pad-Android10-ROM.git \
 repo sync -c -j4
 ```
 
-`-g all` は762プロジェクト全体をcommit固定ツールで照合するために必要です。
+`-g all` は753プロジェクト全体をcommit固定ツールで照合するために必要です。
 Repoによる全同期は2026-10-04のクラウド再試行で成功を確認しました。
 同期が失敗した場合はエラーを解決し、別revisionへ勝手に差し替えず固定の根拠を見直します。
 PHHの `build.sh`・`generate.sh`・FOSSの `update.sh` は、この経路では実行しません。
@@ -61,7 +61,7 @@ python3 /path/to/ctz-rom/scripts/lock-source.py /path/to/android-ctz10 \
   --output /path/to/ctz-records/source-locked.xml
 ```
 
-762箇所のGit checkout、remote URL、HEADとタグ/固定commit、作業差分を照合します。
+753箇所のGit checkout、remote URL、HEADとタグ/固定commit、作業差分を照合します。
 未追跡・無視対象のファイルも検出し、余分なAndroid.mk/Android.bp等を黙って受け入れません。
 全確認後に、各projectの実commitを指定した新規manifestを保存します。既存出力は上書きしません。
 これはローカルcheckoutの記録であり、タグの署名・全ファイルの真正性・ビルドの再現性を保証しません。
