@@ -86,8 +86,28 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
+def compiler_cache_environment():
+    """Opt in to a compiler cache only on the disposable cloud build host."""
+    if os.environ.get("CTZ_COMPILER_CACHE") != "true":
+        return {}
+    if os.environ.get("GITHUB_ACTIONS") != "true" or \
+            os.environ.get("RUNNER_ENVIRONMENT") != "github-hosted":
+        raise ValueError("Compiler cache is restricted to the GitHub-hosted build")
+    cache = Path(os.environ["RUNNER_TEMP"]) / "ctz-compiler-cache"
+    if cache.is_symlink() or not cache.is_dir():
+        raise ValueError("Compiler cache must be a regular runner cache directory")
+    executable = shutil.which("ccache")
+    if not executable:
+        raise ValueError("Compiler cache requested but ccache is missing")
+    return {"USE_CCACHE": "1", "CCACHE_EXEC": executable,
+            "CC_WRAPPER": executable, "CXX_WRAPPER": executable,
+            "CCACHE_DIR": str(cache), "CCACHE_COMPILERCHECK": "content",
+            "CCACHE_MAXSIZE": "7G", "CCACHE_COMPRESS": "true"}
+
+
 def execute_build(root, records, jobs, lock_data):
     # records must not exist. The dedicated OUT_DIR prevents stale image reuse.
+    cache_env = compiler_cache_environment()
     records.mkdir()
     with (records / "source-locked.xml").open("xb") as stream:
         stream.write(lock_data)
@@ -98,6 +118,7 @@ def execute_build(root, records, jobs, lock_data):
     env = {key: os.environ[key] for key in ("PATH", "HOME", "USER", "LOGNAME", "TMPDIR") if key in os.environ}
     env.update({"LC_ALL": "C", "LANG": "C", "OUT_DIR": str(records / "out"),
                 "PYTHONDONTWRITEBYTECODE": "1"})
+    env.update(cache_env)
     receipt = {"target": "suiram_ctz10-userdebug", "goal": "systemimage", "jobs": jobs,
                "startedAt": datetime.now(timezone.utc).isoformat(),
                "sourceManifestSHA256": sha256_file(records / "source-locked.xml"),
@@ -107,6 +128,7 @@ def execute_build(root, records, jobs, lock_data):
                "host": {"system": platform.system(), "release": platform.release(),
                         "architecture": platform.machine(), "python": platform.python_version()},
                "status": "building", "bootTested": False, "flashReady": False}
+    receipt["compilerCache"] = {"enabled": bool(cache_env), "maxSize": "7G" if cache_env else None}
     receipt_path = records / "build-receipt.json"
     receipt_path.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     try:
