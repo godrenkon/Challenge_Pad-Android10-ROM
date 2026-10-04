@@ -33,6 +33,9 @@ runner自体の消失など、後続stepが実行されない場合はartifact�
 本体ビルド成功後は、別の `Verify compiled Android 10 image contents` が自動で動きます。
 同じリポジトリの成功runから成果物を取得し、圧縮SHA256、展開、読み取り専用e2fsck、
 Android 10 / SDK29 / ARM64 / 製品情報、ADB認証とUSB設定、基本アプリのファイル存在を検査します。
+Android 10のGSIに内包される `product` / `product_services` のアプリ配置も検査対象です。
+VNDK 28用の32bit ARM・64bit AArch64の `libstdc++.so` とlinker設定の存在も検査します。
+これは一部の互換ファイルの収録確認であり、全vendorライブラリ・HALの動作保証ではありません。
 PHHの外部リバースデバッグ用3ファイルが含まれないことも検査します。
 Android 10のuserdebug後処理はUSBの `mtp` に `adb` を追加するため、`mtp,adb` も正しい出力として扱います。
 アプリの存在確認は実行テストではありません。検査成功時はJSONレポートを保存します。
@@ -50,6 +53,12 @@ system.img生成に成功しても、実測パーティション容量、AVB条�
 ログ保存stepは未実行、artifactは0件、jobログの取得はBlobNotFoundでした。
 全同期完了・コンパイル開始・system.img生成は確認できず、停止原因は未特定です。
 この結果を受けて、実行中ログ表示と容量・時間の監視を追加して再試行します。
+
+[再試行](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37178988640)の
+2026-10-04 05:52:01 UTCまでの取得ログでは、全ソース同期、commit記録、製品差分の適用を通過し、
+05:26:26 UTCに実コンパイルを開始しています。製品は `suiram_ctz10-userdebug`、Android 10です。
+Ninjaは106,558工程中32,341工程を完了しています。これは所要時間や全移植工程の30%という意味ではありません。
+このログ時点では `system.img` 生成・実機起動は未確認です。実行中runは開始時のcommitで動きます。
 
 再試行中に、PHHの `system.prop` にADB認証無効の設定が残る問題を確認しました。
 `base.mk` と `system.prop` の両方を修正し、上流10ファイルの実データへの適用を確認しています。

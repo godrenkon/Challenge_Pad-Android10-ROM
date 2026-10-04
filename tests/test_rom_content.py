@@ -70,6 +70,14 @@ class FilesystemTests(unittest.TestCase):
         struct.pack_into('<H', native, 18, 183)
         (system / 'lib64').mkdir()
         (system / 'lib64/libandroid_runtime.so').write_bytes(native)
+        for folder, bits, machine in [('lib', 32, 40), ('lib64', 64, 183)]:
+            vndk = system / folder / 'vndk-28'
+            vndk.mkdir(parents=True)
+            elf = bytearray(20)
+            elf[:6] = b'\x7fELF' + bytes([2 if bits == 64 else 1, 1])
+            struct.pack_into('<H', elf, 18, machine)
+            (vndk / 'libstdc++.so').write_bytes(elf)
+        (system / 'etc/ld.config.28.txt').write_text('# SYNTHETIC PLACEHOLDER, NOT A LINKER CONFIG\n')
         self.image = self.root / 'fixture.img'
 
     def make_image(self):
@@ -90,6 +98,47 @@ class FilesystemTests(unittest.TestCase):
         self.assertFalse(result['flashReady'])
         self.assertIn('File presence', result['limits'])
         self.assertIn('/system/bin/dbclient', result['omittedRemoteDebugPaths'])
+        self.assertEqual(set(result['vndk28CompatibilityFiles']), {'32', '64'})
+
+    def test_android10_embedded_product_apps_in_sar_and_flat_image(self):
+        system = self.tree / 'system'
+        (system / 'product').mkdir()
+        shutil.move(str(system / 'priv-app'), str(system / 'product/priv-app'))
+        for sar in [True, False]:
+            with self.subTest(sar=sar):
+                if not sar:
+                    for path in list(system.iterdir()):
+                        shutil.move(str(path), str(self.tree / path.name))
+                    system.rmdir()
+                self.make_image()
+                result = CONTENT.verify_image(self.image)
+                prefix = '/system' if sar else ''
+                self.assertEqual(result['applications']['settings'],
+                                 prefix + '/product/priv-app/Settings/Settings.apk')
+                self.assertEqual(result['systemAsRootLayout'], sar)
+
+    def test_missing_or_wrong_architecture_vendor_compatibility_library_refused(self):
+        for folder in ['lib', 'lib64']:
+            path = self.tree / 'system' / folder / 'vndk-28/libstdc++.so'
+            original = path.read_bytes()
+            for wrong_arch in [False, True]:
+                with self.subTest(folder=folder, wrong_arch=wrong_arch):
+                    if wrong_arch:
+                        bad = bytearray(original)
+                        struct.pack_into('<H', bad, 18, 62)
+                        path.write_bytes(bad)
+                    else:
+                        path.unlink()
+                    self.make_image()
+                    with self.assertRaises(ValueError):
+                        CONTENT.verify_image(self.image)
+                    path.write_bytes(original)
+
+    def test_missing_vndk28_linker_configuration_refused(self):
+        (self.tree / 'system/etc/ld.config.28.txt').unlink()
+        self.make_image()
+        with self.assertRaisesRegex(ValueError, 'linker configuration'):
+            CONTENT.verify_image(self.image)
 
     def test_reverse_debug_helper_and_symlink_are_refused(self):
         helper = self.tree / 'system/bin/dbclient'

@@ -5,7 +5,7 @@
 A public Android 10 bring-up project for **TAB-A05-BA1 / CTZ**, stock build **01.03.000**.
 Japanese is the primary project language and intended final default; English is secondary.
 
-> **Preparation tools and a Japanese-first GSI source recipe are implemented. Full compilation and real-device boot are untested. No finished flashable ROM exists here yet.**
+> **Preparation tools and a Japanese-first GSI source recipe are implemented. Full source sync and product preparation passed in the current cloud attempt; real Android compilation is in progress. Image production and real-device boot remain unverified. No finished flashable ROM exists here yet.**
 
 The initial route retains stock boot/kernel/vendor and evaluates an Android 10 GSI.
 Public stock properties report arm64, Treble, system-as-root and VNDK 28.
@@ -42,7 +42,7 @@ The [integrated manifest](manifest/ctz-android10.xml) contains 762 projects: AOS
 `lock-source.py` inspects local Git checkouts and writes a full commit manifest before patching.
 `build-ctz.py` checks that lock and the approved patch, then builds only with explicit `--run`.
 It uses a new output directory and records logs, failures, image geometry and SHA256.
-Full sync completion and real Android compilation are not yet confirmed. Cloud attempts are running;
+Full sync completion and real Android compilation are confirmed in the current cloud attempt; image production remains unverified.
 the local host has only about 32GiB total disk capacity. The wrapper's conservative policy requires 150GiB free for output and 8GiB effective memory,
 separate from source storage; these are project checks, not official minimum requirements.
 See the Japanese-first [source build guide](docs/source-build.ja.md). Offline wrapper tests use fake
@@ -54,7 +54,7 @@ build behind explicit `--run`; default use only previews the plan and basic host
 build outputs. Unknown existing directories, changed tool inputs and concurrent use are refused.
 The new-workspace policy requires 400GiB free for source plus output; this is a conservative project
 check, not an official minimum. Use `--language en` for English messages.
-See the [workflow guide](docs/build-workflow.ja.md). Real end-to-end source sync/build is untested.
+See the [workflow guide](docs/build-workflow.ja.md). A successful end-to-end image build is not yet confirmed.
 
 PowerShell tools default to Japanese messages; use `-Language en` for English.
 PS1 source is ASCII-only; localized UTF-8 JSON is read explicitly for Windows PowerShell 5.1 compatibility.
@@ -66,11 +66,11 @@ the computed hash is a receipt, not an authenticity guarantee. No extraction hap
 
 Tests cover offline tooling behavior, not actual upstream downloads, hardware operation or ROM boot.
 Stock backup/restore, partition geometry, AVB policy, panel variation and real-device logs remain required.
-`flashReady` is always false. A 1GB SD card is not assumed large enough for an expanded image.
+`flashReady` is always false. Device validation uses USB.
 
 The device-specific `device/benesse/ctz` skeleton is explicitly disabled until hardware facts are verified;
 the separate generic GSI source recipe is experimental. The first cloud systemimage attempt failed
-without a saved image or stage report; full sync and compilation are not confirmed.
+without a saved image or stage report. The next attempt completed sync and started actual compilation.
 The next attempt streams logs and stops before its time/disk budget is exhausted to preserve reports.
 When an attempt ends, a changed build recipe can queue one follow-up attempt on main automatically.
 An unchanged recipe or an existing attempt for that commit does not trigger another build.

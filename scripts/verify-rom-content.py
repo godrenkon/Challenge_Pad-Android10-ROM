@@ -88,6 +88,14 @@ def exists(image, path):
         return False
 
 
+def check_elf(data, *, bits, machine, path):
+    elf_class = 2 if bits == 64 else 1
+    if (len(data) < 20 or data[:4] != b'\x7fELF' or data[4:6] != bytes([elf_class, 1])
+            or struct.unpack_from('<H', data, 18)[0] != machine):
+        raise ValueError('Unexpected ELF architecture in ' + path + ': expected ' +
+                         ('AArch64' if machine == 183 else 'ARM') + '/' + str(bits))
+
+
 def inspect_ext4(image):
     prefix = '/system' if exists(image, '/system/build.prop') else ''
     build_path = prefix + '/build.prop'
@@ -105,11 +113,14 @@ def inspect_ext4(image):
     for path in omitted_remote:
         if entry_exists(image, path):
             raise ValueError('Unexpected PHH reverse-debugging helper in image: ' + path)
-    paths = {'settings': [prefix + '/priv-app/Settings/Settings.apk'],
-             'files': [prefix + '/priv-app/DocumentsUI/DocumentsUI.apk', prefix + '/app/DocumentsUI/DocumentsUI.apk'],
-             'launcher': [prefix + '/' + location + '/' + name + '/' + name + '.apk'
-                          for location in ['priv-app', 'app']
-                          for name in ['Launcher3QuickStep', 'Launcher3', 'Launcher3Go']]}
+    # Android 10 GSI embeds product and product_services under system. Settings
+    # and QuickStep are product modules in the actual pinned build, not system
+    # modules. Search embedded paths only; an external partition is not this image.
+    app_roots = [prefix + suffix for suffix in ['', '/product', '/product_services']]
+    paths = {feature: [root + '/' + location + '/' + name + '/' + name + '.apk'
+                       for root in app_roots for location in ['priv-app', 'app'] for name in names]
+             for feature, names in {'settings': ['Settings'], 'files': ['DocumentsUI'],
+                                    'launcher': ['Launcher3QuickStep', 'Launcher3', 'Launcher3Go']}.items()}
     verified = {}
     for feature, candidates in paths.items():
         match = next((path for path in candidates if exists(image, path)), None)
@@ -117,10 +128,23 @@ def inspect_ext4(image):
             raise ValueError('Required system application is missing: ' + feature)
         verified[feature] = match
     native = debugfs(image, 'cat ' + prefix + '/lib64/libandroid_runtime.so')
-    if len(native) < 20 or native[:6] != b'\x7fELF\x02\x01' or struct.unpack_from('<H', native, 18)[0] != 183:
-        raise ValueError('Android runtime is not a little-endian AArch64 ELF library')
+    check_elf(native, bits=64, machine=183, path=prefix + '/lib64/libandroid_runtime.so')
+    # CTZ's published stock declares VNDK 28 and both ARM userspaces. These
+    # PHH compatibility files are copied by the pinned vndk32.mk/vndk64.mk.
+    # Checking them does not establish full vendor/HAL compatibility.
+    compatibility = {}
+    for folder, bits, machine in [('lib', 32, 40), ('lib64', 64, 183)]:
+        path = prefix + '/' + folder + '/vndk-28/libstdc++.so'
+        if not exists(image, path):
+            raise ValueError('Missing Android 9 vendor compatibility library: ' + path)
+        check_elf(debugfs(image, 'cat ' + path), bits=bits, machine=machine, path=path)
+        compatibility[str(bits)] = path
+    linker = prefix + '/etc/ld.config.28.txt'
+    if not exists(image, linker):
+        raise ValueError('Missing VNDK 28 linker configuration: ' + linker)
     return {'properties': selected, 'applications': verified, 'runtimeELF': 'AArch64-64bit-little-endian',
-            'systemAsRootLayout': prefix == '/system', 'omittedRemoteDebugPaths': omitted_remote}
+            'systemAsRootLayout': prefix == '/system', 'omittedRemoteDebugPaths': omitted_remote,
+            'vndk28CompatibilityFiles': compatibility, 'vndk28LinkerConfig': linker}
 
 
 def verify_image(image):

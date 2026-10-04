@@ -9,11 +9,11 @@
 `gsi/` に日本語初期言語・英語追加のPHH派生製品設定を実装しました。
 `scripts/prepare-gsi-source.py` は固定した上流10ファイルを照合し、明示的な `--apply` でのみ
 専用ソースツリーへ適用します。[内容・使い方・検証の限界](source-product.ja.md)を確認してください。
-全ソース同期・コンパイル・system.img生成はまだ完了していません。
+全ソース同期が完了し、実コンパイルを確認しました。system.img生成はまだ完了確認できていません。
 [統合manifestとソース固定/ビルド手順](source-build.ja.md)を追加しました。
 AOSPタグと27個の固定commitを統合した762プロジェクトが対象です。
 約32GiBのローカル環境ではフルビルドせず、[クラウド工程](cloud-rom-build.ja.md)を実行しています。
-初回は失敗し、再試行中です。全同期完了とsystem.img生成の成功はまだ確認できていません。
+初回は失敗し、再試行でソース同期と製品差分適用を通過しました。本体の実コンパイル中で、system.img生成の成功はまだ確認できていません。
 [工程ランナー](build-workflow.ja.md)で準備からビルドまでをまとめ、失敗後の再開も記録付きで行えます。
 
 `device/benesse/ctz` は将来用の雛形です。stock bootヘッダー、kernel integration、
