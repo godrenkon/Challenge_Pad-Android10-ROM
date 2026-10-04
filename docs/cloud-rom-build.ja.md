@@ -33,6 +33,7 @@ runner自体の消失など、後続stepが実行されない場合はartifact�
 本体ビルド成功後は、別の `Verify compiled Android 10 image contents` が自動で動きます。
 同じリポジトリの成功runから成果物を取得し、圧縮SHA256、展開、読み取り専用e2fsck、
 Android 10 / SDK29 / ARM64 / 製品情報、ADB認証とUSB設定、基本アプリのファイル存在を検査します。
+PHHの外部リバースデバッグ用3ファイルが含まれないことも検査します。
 Android 10のuserdebug後処理はUSBの `mtp` に `adb` を追加するため、`mtp,adb` も正しい出力として扱います。
 アプリの存在確認は実行テストではありません。検査成功時はJSONレポートを保存します。
 元のsystemイメージへ書き込み・mountはしません。

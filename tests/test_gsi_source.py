@@ -23,6 +23,7 @@ class SourceTest(unittest.TestCase):
                               b"\tro.adb.secure=0 \\\n"
                               b"\tpersist.sys.usb.config=adb \\\n"
                               b"\tro.logd.auditd=true\n")
+        self.base_original += self.profile['securityEdits'][2]['before'].encode()
         self.files = {}
         self.system_original = b"ro.adb.secure=0\nro.sys.sdcardfs=0\n# synthetic offline fixture\n"
         for relative in self.profile["requiredFiles"]:
@@ -74,6 +75,7 @@ class SourceTest(unittest.TestCase):
         self.assertIn(b"ro.adb.secure=1", base)
         self.assertIn(b"persist.sys.usb.config=mtp", base)
         self.assertNotIn(b"ro.adb.secure=0", base)
+        self.assertNotIn(b"device/phh/treble/remote/", base)
         self.assertEqual((self.root / (MODULE.BASE + ".ctz-original")).read_bytes(), self.base_original)
         self.assertEqual((self.root / MODULE.SYSTEM_PROP).read_bytes(),
                          self.system_original.replace(b"ro.adb.secure=0", b"ro.adb.secure=1"))
@@ -104,8 +106,11 @@ class SourceTest(unittest.TestCase):
         self.assertEqual(before, self.snapshot())
 
     def test_interrupted_install_between_property_files_can_complete(self):
-        self.write(MODULE.BASE, self.base_original.replace(b"ro.adb.secure=0", b"ro.adb.secure=1")
-                   .replace(b"persist.sys.usb.config=adb", b"persist.sys.usb.config=mtp"))
+        patched = self.base_original.replace(b"ro.adb.secure=0", b"ro.adb.secure=1") \
+            .replace(b"persist.sys.usb.config=adb", b"persist.sys.usb.config=mtp") \
+            .replace(self.profile['securityEdits'][2]['before'].encode(),
+                     self.profile['securityEdits'][2]['after'].encode())
+        self.write(MODULE.BASE, patched)
         self.write(MODULE.BASE + ".ctz-original", self.base_original)
         self.apply()
         self.assertIn(b"ro.adb.secure=1\n", (self.root / MODULE.SYSTEM_PROP).read_bytes())

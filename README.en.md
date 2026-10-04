@@ -26,6 +26,7 @@ The new recipe selects Japanese first and English second, keeps the generic PHH 
 and adds neither GApps nor the PHH superuser applications. It patches both shared PHH property sources to
 request authenticated ADB and MTP as the default USB configuration, affecting other PHH products
 in that tree too. Use a dedicated source tree. Userdebug remains an engineering build.
+The inherited external PHH reverse-debugging helper is omitted; standard authenticated ADB remains.
 The tool checks ten pinned input blobs, retains backups, refuses conflicts, and is idempotent.
 It does not patch the downloaded GSI, sync the whole source tree, build Android or operate the tablet.
 The component snapshot is not a complete release manifest or proof of v222 binary reproducibility.

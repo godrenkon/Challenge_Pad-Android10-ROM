@@ -23,7 +23,11 @@
   "additionalRequiredPaths": [],
   "securityEdits": [
     {"before": "\tro.adb.secure=0 \\\n", "after": "\tro.adb.secure=1 \\\n"},
-    {"before": "\tpersist.sys.usb.config=adb \\\n", "after": "\tpersist.sys.usb.config=mtp \\\n"}
+    {"before": "\tpersist.sys.usb.config=adb \\\n", "after": "\tpersist.sys.usb.config=mtp \\\n"},
+    {
+      "before": "# Remote debugging\nPRODUCT_COPY_FILES += \\\n\tdevice/phh/treble/remote/dbclient:system/bin/dbclient \\\n\tdevice/phh/treble/remote/phh-remotectl.rc:system/etc/init/phh-remotectl.rc \\\n\tdevice/phh/treble/remote/phh-remotectl.sh:system/bin/phh-remotectl.sh \\\n",
+      "after": "# External PHH reverse-debugging helper is not included in this product.\n"
+    }
   ],
   "systemPropertyEdits": [
     {"before": "ro.adb.secure=0\n", "after": "ro.adb.secure=1\n"}

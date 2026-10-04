@@ -12,6 +12,7 @@
 | ボード | `phhgsi_arm64_ab` を保持 | CTZの物理スロット構成を意味しない |
 | ADB | PHHの `base.mk` と `system.prop` の両方で `ro.adb.secure=0` を `1` に変更 | stock vendor側のプロパティを含む実機の最終挙動 |
 | USB初期構成 | PHHの `persist.sys.usb.config=adb` を `mtp` に変更 | 実機でのMTP動作 |
+| 外部リバースデバッグ | PHHのdbclient・リバースデバッグ用script・init設定のコピーを除外 | 標準ADBの実機動作。OS全体の安全性を保証するものではない |
 | 追加アプリ | `phh-su`・`me.phh.superuser`・GAppsを追加しない | userdebug自体は開発用。安全性・認証は保証しない |
 
 日本語UIと日本語キーボードは別です。Android 10ツリーで確認できていないIMEモジュールを
@@ -63,9 +64,10 @@ python3 /path/to/ctz-rom/scripts/prepare-gsi-source.py /path/to/android --apply
 ```
 
 ツールは全入力を検査してから、製品設定と登録を追加し、PHH共通 `base.mk` の2項目と
-`system.prop` のADB認証設定を変更します。
+`system.prop` のADB認証設定を変更し、PHHの外部リバースデバッグ用3ファイルのコピーを除外します。
 **これらの共通ファイルの変更は同じツリーの他のPHH製品にも影響します。既存作業ツリーと共有しないでください。**
 元のbase.mk・system.prop・AndroidProducts.mkは `.ctz-original` として保存します。
+生成後の内容検査は、この3ファイルが存在しないことも確認し、同名symlinkも拒否します。
 未知の入力・変更済み出力・競合バックアップ・symlinkを拒否し、同じ状態で再実行すると変更しません。
 I/O障害時の全ファイル一括ロールバックはありません。途中で失敗した場合は差分とバックアップを
 手動確認し、自動再適用やバックアップ削除で押し切らないでください。

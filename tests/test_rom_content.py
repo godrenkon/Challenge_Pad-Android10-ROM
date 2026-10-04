@@ -89,6 +89,21 @@ class FilesystemTests(unittest.TestCase):
         self.assertFalse(result['hardwareTested'])
         self.assertFalse(result['flashReady'])
         self.assertIn('File presence', result['limits'])
+        self.assertIn('/system/bin/dbclient', result['omittedRemoteDebugPaths'])
+
+    def test_reverse_debug_helper_and_symlink_are_refused(self):
+        helper = self.tree / 'system/bin/dbclient'
+        helper.parent.mkdir()
+        for symlink in [False, True]:
+            with self.subTest(symlink=symlink):
+                if symlink:
+                    helper.symlink_to('/missing/helper')
+                else:
+                    helper.write_bytes(b'SYNTHETIC DISALLOWED HELPER')
+                self.make_image()
+                with self.assertRaisesRegex(ValueError, 'reverse-debugging helper'):
+                    CONTENT.verify_image(self.image)
+                helper.unlink()
 
     def test_missing_launcher_and_wrong_native_architecture_refused(self):
         launcher = self.tree / 'system/priv-app/Launcher3QuickStep/Launcher3QuickStep.apk'

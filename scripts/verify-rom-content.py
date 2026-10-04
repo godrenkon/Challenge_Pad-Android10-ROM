@@ -56,16 +56,28 @@ def check_properties(build, defaults):
     return {key: combined[key] for key in list(required) + ['ro.adb.secure', 'persist.sys.usb.config']}
 
 
-def debugfs(image, command):
+def debugfs(image, command, *, allow_missing=False):
     # No -w and no mount: debugfs accesses the image in read-only mode.
     result = subprocess.run(['debugfs', '-R', command, str(image)], capture_output=True,
                             check=False, timeout=120)
     errors = result.stderr.decode('utf-8', 'replace')
+    if allow_missing and result.returncode == 0 and any(marker in errors for marker in
+                                                        ['File not found', 'not found by ext2_lookup']):
+        return None
     if result.returncode or any(marker in errors for marker in
                                 ['File not found', 'not found by ext2_lookup', 'Filesystem not open',
                                  'Bad magic number', 'short read', 'Command not found']):
         raise ValueError('Cannot inspect image entry: ' + command + ': ' + errors.strip())
     return result.stdout
+
+
+def entry_exists(image, path):
+    data = debugfs(image, 'stat ' + path, allow_missing=True)
+    if data is None:
+        return False
+    if b'Inode:' not in data:
+        raise ValueError('Cannot establish whether image entry exists: ' + path)
+    return True
 
 
 def exists(image, path):
@@ -88,6 +100,11 @@ def inspect_ext4(image):
                     raise ValueError('Conflicting default properties: ' + key)
                 defaults[key] = value
     selected = check_properties(build, defaults)
+    omitted_remote = [prefix + path for path in
+                      ['/bin/dbclient', '/bin/phh-remotectl.sh', '/etc/init/phh-remotectl.rc']]
+    for path in omitted_remote:
+        if entry_exists(image, path):
+            raise ValueError('Unexpected PHH reverse-debugging helper in image: ' + path)
     paths = {'settings': [prefix + '/priv-app/Settings/Settings.apk'],
              'files': [prefix + '/priv-app/DocumentsUI/DocumentsUI.apk', prefix + '/app/DocumentsUI/DocumentsUI.apk'],
              'launcher': [prefix + '/' + location + '/' + name + '/' + name + '.apk'
@@ -103,7 +120,7 @@ def inspect_ext4(image):
     if len(native) < 20 or native[:6] != b'\x7fELF\x02\x01' or struct.unpack_from('<H', native, 18)[0] != 183:
         raise ValueError('Android runtime is not a little-endian AArch64 ELF library')
     return {'properties': selected, 'applications': verified, 'runtimeELF': 'AArch64-64bit-little-endian',
-            'systemAsRootLayout': prefix == '/system'}
+            'systemAsRootLayout': prefix == '/system', 'omittedRemoteDebugPaths': omitted_remote}
 
 
 def verify_image(image):
