@@ -12,7 +12,12 @@ MIN_BACKING_FREE = 60 * 1024 ** 3
 
 
 def command(argv):
-    return subprocess.run(argv, check=True, capture_output=True, text=True).stdout
+    try:
+        return subprocess.run(argv, check=True, capture_output=True, text=True).stdout
+    except subprocess.CalledProcessError as error:
+        print(error.stdout or '', end='', file=sys.stderr)
+        print(error.stderr or '', end='', file=sys.stderr)
+        raise
 
 
 def prepare(root):

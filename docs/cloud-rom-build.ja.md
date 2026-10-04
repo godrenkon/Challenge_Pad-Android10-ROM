@@ -75,6 +75,15 @@ system.img生成に成功しても、実測パーティション容量、AVB条�
 ソース同期後の空きは44,620,001,280 bytesでした。この実測を受け、Macホスト専用ソースの除外と
 中間生成物も含むビルド領域の透過圧縮を追加しました。
 
+圧縮領域の[実runner検証](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37188221202)は
+2026-10-04 08:15:32 UTCに成功しました。Btrfsの `compress-force=zstd:3` mount、
+9,437,184 bytesの試験データが294,912 bytesのextentsになること、その領域でCプログラムをコンパイル・実行できることを確認しています。
+この試験データの圧縮率をAndroidソースや中間生成物の圧縮率とはみなしません。
+実runnerの外側の空きは119,519,567,872 bytesでした。ソース・Windows PowerShell・Linux PowerShellのCIも成功しています。
+Ubuntu 22.04の圧縮確認ツールは `btrfs-compsize` パッケージから提供される `compsize` を使います。
+修正版はmanifest commit `38974bf7945751ad9eb38e29420c329c07f56a89` を取得し、
+起動要求 `2026-10-04-disk-capacity-02` で旧構成のrunを置き換えます。
+
 再試行中に、PHHの `system.prop` にADB認証無効の設定が残る問題を確認しました。
 `base.mk` と `system.prop` の両方を修正し、上流10ファイルの実データへの適用を確認しています。
 すでに開始済みのrunへ後からソース差分を注入しません。
