@@ -1,5 +1,20 @@
 # OS本体のクラウドビルド
 
+## 時間上限で停止した場合のコンパイルキャッシュ
+
+2026-10-04のrun `37188392199` は、4並列で89%まで進みましたが、315分の
+監督プロセスの上限に達して停止しました。完成イメージはありません。
+標準GitHub-hosted runnerはジョブ全体が6時間までなので、単純な上限延長では解決しません。
+
+次の案では、同じソース・製品・ビルドツールの組み合わせについて、ccacheを7Gに制限し、
+失敗時にも保存します。次回はキャッシュが一致するC/C++のコンパイル結果を再利用できます。
+最初の試行は空のキャッシュから始まり、時間内の完成は保証しません。Java、リンク処理、
+イメージ生成などは再実行されます。キャッシュの容量設定はGitHubの既存上限を変更しません。
+この案は新しいOUT_DIRと完成イメージの検証を維持し、古いsystem.imgを再利用しません。
+
+参考: [GitHubの6時間制限](https://docs.github.com/en/actions/reference/limits)、
+[固定したAndroid 10のccache設定](https://github.com/phhusson/platform_build/blob/165f02822b54b3651fb388fc425ea9f3b416b496/core/ccache.mk)。
+
 `Compile Android 10 systemimage` は、753プロジェクトのソースを同期し、全commitを記録、
 製品差分を適用して `lunch suiram_ctz10-userdebug` → `m systemimage` を実行する工程です。
 入力アプリ単体のビルドや、配布済みGSIの名前変更ではありません。
