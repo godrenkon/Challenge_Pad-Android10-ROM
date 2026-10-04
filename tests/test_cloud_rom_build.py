@@ -146,6 +146,15 @@ class CloudBuildTests(unittest.TestCase):
             self.assertEqual(CLOUD.main(['--worker', str(nested)]), 2)
             run.assert_not_called()
 
+    def test_compilation_does_not_start_with_low_real_backing_capacity(self):
+        context = {'source': self.root, 'records': self.root, 'jobs': 4}
+        with patch.dict(os.environ, {'CTZ_COMPRESSED_STORAGE': 'true'}), \
+                patch.object(CLOUD, 'disk_free', return_value=CLOUD.OUTPUT_ATTEMPT_FREE - 1), \
+                patch.object(CLOUD.FLOW, 'perform_stage') as perform, \
+                self.assertRaisesRegex(ValueError, 'real backing space'):
+            CLOUD.cloud_stage('build', context, {}, io.BytesIO())
+        perform.assert_not_called()
+
     def test_streams_compiler_log_incrementally(self):
         log = self.workspace / 'records/build-attempt-5/build.log'
         log.parent.mkdir(parents=True)

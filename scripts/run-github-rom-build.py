@@ -118,6 +118,9 @@ def interrupted(signum, frame):
 
 
 def cloud_stage(stage, context, state, log):
+    if stage == 'build' and os.environ.get('CTZ_COMPRESSED_STORAGE') == 'true' and \
+            disk_free(context['records']) < OUTPUT_ATTEMPT_FREE:
+        raise ValueError('At least 20 GiB of real backing space is required before compilation')
     if stage == 'init':
         FLOW.check_manifest_checkout(context['source'], context['revision'], allow_missing=True)
         FLOW.run_command(['repo', 'init', '-u', FLOW.MANIFEST_REPO, '-b', context['revision'],

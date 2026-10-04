@@ -38,7 +38,7 @@ python3 /path/to/ctz-rom/scripts/build-workflow.py /mnt/builds/ctz10-work --run 
 ```
 
 既定のmanifest取得commitは
-[`89e0df49cc69e650839e713059883971fd508d94`](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/tree/89e0df49cc69e650839e713059883971fd508d94)
+[`38974bf7945751ad9eb38e29420c329c07f56a89`](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/tree/38974bf7945751ad9eb38e29420c329c07f56a89)
 です。手元の統合manifestと取得内容が一致すること、実際に使用するmanifestと全project選択も検査します。
 別のmanifest版を指定する場合は `--project-revision` に40桁commitを渡します。`main` は指定できません。
 手元の実行ツールと設定は別にSHA256を記録するので、取得commitと実行ツールを混同しません。

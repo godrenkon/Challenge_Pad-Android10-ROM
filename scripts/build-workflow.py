@@ -18,7 +18,7 @@ from source_manifest import ROOT, SHA, RECIPE, assert_clear_index, checked_recip
 STAGES = ("init", "sync", "lock", "prepare", "build")
 MANIFEST_REPO = "https://github.com/godrenkon/Challenge_Pad-Android10-ROM.git"
 MANIFEST_NAME = "manifest/ctz-android10.xml"
-PINNED_MANIFEST_REVISION = "89e0df49cc69e650839e713059883971fd508d94"
+PINNED_MANIFEST_REVISION = "38974bf7945751ad9eb38e29420c329c07f56a89"
 NEW_WORKSPACE_FREE = 400 * 1024 ** 3
 MESSAGES = {
     "ja": {"check": "検査のみ。ダウンロード・変更・ビルドは実行しません。",

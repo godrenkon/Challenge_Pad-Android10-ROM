@@ -38,11 +38,11 @@ this result does not demonstrate a full Android build or device operation.
 See the Japanese-first [source recipe guide](docs/source-product.ja.md).
 
 The [integrated manifest](manifest/ctz-android10.xml) contains 753 projects: AOSP is pinned to
-`android-10.0.0_r41`, while 27 PHH/additional components use fixed commits.
+`android-10.0.0_r41`, while 27 PHH/additional components use fixed commits. Nine upstream Darwin-only host prebuilt projects are excluded from this Linux recipe.
 `lock-source.py` inspects local Git checkouts and writes a full commit manifest before patching.
 `build-ctz.py` checks that lock and the approved patch, then builds only with explicit `--run`.
 It uses a new output directory and records logs, failures, image geometry and SHA256.
-Full sync completion and real Android compilation are confirmed in the current cloud attempt; image production remains unverified.
+The earlier attempt synced all 762 original projects and compiled Android, then stopped at Ninja 73% because disk space fell below the report reserve. The updated Linux recipe selects 753 projects and uses compressed build storage. Image production remains unverified.
 the local host has only about 32GiB total disk capacity. The wrapper's conservative policy requires 150GiB free for output and 8GiB effective memory,
 separate from source storage; these are project checks, not official minimum requirements.
 See the Japanese-first [source build guide](docs/source-build.ja.md). Offline wrapper tests use fake

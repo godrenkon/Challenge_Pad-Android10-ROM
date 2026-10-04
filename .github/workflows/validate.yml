@@ -67,7 +67,7 @@ jobs:
         run: |
           sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift
           sudo apt-get update
-          sudo apt-get install -y btrfs-progs compsize
+          sudo apt-get install -y btrfs-progs btrfs-compsize
           python3 scripts/prepare-cloud-storage.py "$RUNNER_TEMP"
           cd "$RUNNER_TEMP/ctz-rom-storage"
           printf 'int main(void) { return 0; }\n' > smoke.c
