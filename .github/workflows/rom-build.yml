@@ -1,10 +1,8 @@
 name: Compile Android 10 systemimage
 
 on:
-  push:
-    paths:
-      - '.github/workflows/rom-build.yml'
-      - 'scripts/run-github-rom-build.py'
+  # Start explicitly, or through rom-followup.yml after an obsolete attempt.
+  # Recipe fixes must not create overlapping full-source builds on every push.
   workflow_dispatch:
 
 permissions:

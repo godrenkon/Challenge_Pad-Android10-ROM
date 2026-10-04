@@ -26,6 +26,13 @@ ATTEMPT_SECONDS = 315 * 60
 SYNC_JOBS = 4
 
 
+def compiler_jobs(memory_bytes, cpu_count):
+    # A public runner reported ~15.6 GiB usable RAM. Use its four CPUs, but
+    # retain the lower-memory policy and never scale beyond four compiler jobs.
+    memory_limit = 4 if memory_bytes >= 14 * 1024 ** 3 else 2
+    return min(memory_limit, max(1, cpu_count or 1))
+
+
 def follow_logs(workspace, offsets):
     """Mirror newly written stage/compiler logs without walking the source tree."""
     records = workspace / 'records'
@@ -137,18 +144,20 @@ def main(argv=None):
         raise ValueError('Cloud workspace must be inside RUNNER_TEMP')
     FLOW.BUILD.MIN_FREE = OUTPUT_ATTEMPT_FREE
     host = FLOW.BUILD.host_report(workspace.parent)
+    jobs = compiler_jobs(host['effectiveMemoryBytes'], os.cpu_count())
     if host['freeOutputBytes'] < SOURCE_ATTEMPT_FREE:
         host['blockers'].append('Experimental cloud attempt requires at least 60 GiB free before sync')
     if shutil.which('repo') is None:
         host['blockers'].append('Pinned Repo launcher is missing')
     print(json.dumps({'policy': 'experimental-github-attempt-not-capacity-guarantee', 'host': host,
+                      'compilerJobs': jobs,
                       'manifestRevision': FLOW.PINNED_MANIFEST_REVISION,
                       'cloudBuilderSHA256': FLOW.BUILD.sha256_file(Path(__file__)),
                       'flashReady': False, 'bootTested': False}, indent=2), flush=True)
     if host['blockers']:
         return 2
     if worker:
-        state = FLOW.run_pipeline(workspace, FLOW.PINNED_MANIFEST_REVISION, jobs=2,
+        state = FLOW.run_pipeline(workspace, FLOW.PINNED_MANIFEST_REVISION, jobs=jobs,
                                   perform=cloud_stage)
         print(json.dumps(state, indent=2), flush=True)
         return 0

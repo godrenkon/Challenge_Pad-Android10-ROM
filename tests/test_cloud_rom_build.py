@@ -36,7 +36,8 @@ class CloudBuildTests(unittest.TestCase):
         self.assertFalse(self.workspace.exists())
 
     def test_source_capacity_gate_stops_before_download(self):
-        report = {'blockers': [], 'freeOutputBytes': CLOUD.SOURCE_ATTEMPT_FREE - 1}
+        report = {'blockers': [], 'freeOutputBytes': CLOUD.SOURCE_ATTEMPT_FREE - 1,
+                  'effectiveMemoryBytes': 8 * 1024 ** 3}
         with self.env(), patch.object(CLOUD.FLOW.BUILD, 'host_report', return_value=report), \
                 patch.object(CLOUD.shutil, 'which', return_value='/fixture/repo'), \
                 patch.object(CLOUD.FLOW, 'run_pipeline') as run, redirect_stdout(io.StringIO()):
@@ -49,14 +50,30 @@ class CloudBuildTests(unittest.TestCase):
             CLOUD.main([str(self.root.parent / 'outside-runner')])
 
     def test_success_path_runs_the_full_pipeline(self):
-        report = {'blockers': [], 'freeOutputBytes': CLOUD.SOURCE_ATTEMPT_FREE}
+        report = {'blockers': [], 'freeOutputBytes': CLOUD.SOURCE_ATTEMPT_FREE,
+                  'effectiveMemoryBytes': 8 * 1024 ** 3}
         with self.env(), patch.object(CLOUD.FLOW.BUILD, 'host_report', return_value=report), \
                 patch.object(CLOUD.shutil, 'which', return_value='/fixture/repo'), \
+                patch.object(CLOUD.os, 'cpu_count', return_value=4), \
                 patch.object(CLOUD.FLOW, 'run_pipeline', return_value={'fixture': True}) as run, \
                 redirect_stdout(io.StringIO()):
             self.assertEqual(CLOUD.main(['--worker', str(self.workspace)]), 0)
             self.assertIs(run.call_args.kwargs['perform'], CLOUD.cloud_stage)
             self.assertEqual(run.call_args.kwargs['jobs'], 2)
+
+    def test_worker_uses_four_jobs_only_with_sufficient_ram_and_cpus(self):
+        for memory, cpus, expected in [(16765415424, 4, 4), (16765415424, 2, 2),
+                                       (8 * 1024 ** 3, 4, 2), (16765415424, None, 1)]:
+            report = {'blockers': [], 'freeOutputBytes': CLOUD.SOURCE_ATTEMPT_FREE,
+                      'effectiveMemoryBytes': memory}
+            with self.subTest(memory=memory, cpus=cpus), self.env(), \
+                    patch.object(CLOUD.FLOW.BUILD, 'host_report', return_value=report), \
+                    patch.object(CLOUD.shutil, 'which', return_value='/fixture/repo'), \
+                    patch.object(CLOUD.os, 'cpu_count', return_value=cpus), \
+                    patch.object(CLOUD.FLOW, 'run_pipeline', return_value={}) as run, \
+                    redirect_stdout(io.StringIO()):
+                self.assertEqual(CLOUD.main(['--worker', str(self.workspace)]), 0)
+                self.assertEqual(run.call_args.kwargs['jobs'], expected)
 
     def test_clone_optimization_keeps_all_projects_and_fixed_revision(self):
         context = {'source': self.root, 'records': self.root, 'revision': '1' * 40}
@@ -76,7 +93,8 @@ class CloudBuildTests(unittest.TestCase):
         self.assertEqual(code, 7)
 
     def test_public_entry_uses_supervisor_and_preserves_worker_status(self):
-        report = {'blockers': [], 'freeOutputBytes': CLOUD.SOURCE_ATTEMPT_FREE}
+        report = {'blockers': [], 'freeOutputBytes': CLOUD.SOURCE_ATTEMPT_FREE,
+                  'effectiveMemoryBytes': 8 * 1024 ** 3}
         with self.env(), patch.object(CLOUD.FLOW.BUILD, 'host_report', return_value=report), \
                 patch.object(CLOUD.shutil, 'which', return_value='/fixture/repo'), \
                 patch.object(CLOUD, 'supervise', return_value=7) as supervise, \
