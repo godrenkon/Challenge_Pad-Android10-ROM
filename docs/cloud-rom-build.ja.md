@@ -72,6 +72,10 @@ Ninjaは106,558工程中69,386工程を完了しています。これは所要�
 キャンセルされたrunからも自動開始しません。
 比較する入力は `scripts/queue-updated-rom-build.cjs` の `INPUTS` に列挙しています。
 このworkflowの `actions: write` は本体workflowの開始に使い、端末操作やリリース公開は行いません。
-本体workflowは `workflow_dispatch` で起動します。修正pushで重複した本体ビルドを開始しません。
-進行中の旧版がなければ、[本体workflow](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/workflows/rom-build.yml)
+本体workflowは `workflow_dispatch`、または `.github/rom-build-request.json` の明示的な起動要求で開始します。
+通常のソース修正pushでは開始しません。新しい本体runはconcurrency groupで直列化し、実行中runを自動キャンセルしません。
+concurrency設定追加前に開始した旧版runは、このgroupに含まれません。
+2026-10-04の起動要求は、修正済みのADB設定と並列数選択を含むmainの本体ビルドを開始するためのものです。
+これで開始したcommitの本体runがあれば、旧版完了後の自動再ビルド処理も重複して開始しません。
+手動の場合は、[本体workflow](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/workflows/rom-build.yml)
 の `Run workflow` から明示的に開始します。

@@ -1,12 +1,19 @@
 name: Compile Android 10 systemimage
 
 on:
-  # Start explicitly, or through rom-followup.yml after an obsolete attempt.
-  # Recipe fixes must not create overlapping full-source builds on every push.
+  # A tracked request explicitly starts a reviewed recipe without requiring
+  # another unrelated recipe edit. Ordinary source pushes do not start builds.
+  push:
+    paths:
+      - '.github/rom-build-request.json'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ctz-android10-systemimage
+  cancel-in-progress: false
 
 jobs:
   systemimage:

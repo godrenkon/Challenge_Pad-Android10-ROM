@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "requestId": "2026-10-04-fixed-recipe-01",
+  "basedOn": "12e5327e0e07a971746e79483e557c5edbdeb990",
+  "reason": "Build the reviewed authenticated-ADB recipe with adaptive compiler concurrency.",
+  "bootTested": false,
+  "flashReady": false
+}
