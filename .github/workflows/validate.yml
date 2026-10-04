@@ -18,6 +18,8 @@ jobs:
         run: python3 scripts/generate-source-manifest.py
       - name: Image, extraction and GSI source regression tests
         run: python3 -m unittest discover -s tests -v
+      - name: Updated recipe queue guards
+        run: node --test tests/test_queue_rom_build.cjs
       - name: Required files, JSON and manifest
         run: |
           python3 - <<'PY'

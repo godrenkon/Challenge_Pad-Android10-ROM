@@ -41,6 +41,14 @@ class PropertyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'duplicate'):
             CONTENT.properties(b'ro.build.type=user\nro.build.type=userdebug\n')
 
+    def test_build_prop_cannot_disable_default_adb_authentication(self):
+        with self.assertRaisesRegex(ValueError, 'authenticated-ADB'):
+            CONTENT.check_properties(CONTENT.properties(BUILD + b'ro.adb.secure=0\n'),
+                                     CONTENT.properties(DEFAULT))
+        result = CONTENT.check_properties(CONTENT.properties(BUILD + b'ro.adb.secure=1\n'),
+                                          CONTENT.properties(DEFAULT))
+        self.assertEqual(result['ro.adb.secure'], '1')
+
 
 @unittest.skipUnless(all(shutil.which(x) for x in ['mkfs.ext4', 'debugfs', 'e2fsck']), 'e2fsprogs unavailable')
 class FilesystemTests(unittest.TestCase):

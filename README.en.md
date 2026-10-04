@@ -23,10 +23,10 @@ not an original CTZ ROM or verified bootable release. PHH's AB label does not es
   `suiram_ctz10-userdebug` product into a separate matching Android source tree.
 
 The new recipe selects Japanese first and English second, keeps the generic PHH board,
-and adds neither GApps nor the PHH superuser applications. It patches the shared PHH base to
+and adds neither GApps nor the PHH superuser applications. It patches both shared PHH property sources to
 request authenticated ADB and MTP as the default USB configuration, affecting other PHH products
 in that tree too. Use a dedicated source tree. Userdebug remains an engineering build.
-The tool checks nine pinned input blobs, retains backups, refuses conflicts, and is idempotent.
+The tool checks ten pinned input blobs, retains backups, refuses conflicts, and is idempotent.
 It does not patch the downloaded GSI, sync the whole source tree, build Android or operate the tablet.
 The component snapshot is not a complete release manifest or proof of v222 binary reproducibility.
 Japanese input-method integration and real-device locale behavior remain unverified.
@@ -41,8 +41,8 @@ The [integrated manifest](manifest/ctz-android10.xml) contains 762 projects: AOS
 `lock-source.py` inspects local Git checkouts and writes a full commit manifest before patching.
 `build-ctz.py` checks that lock and the approved patch, then builds only with explicit `--run`.
 It uses a new output directory and records logs, failures, image geometry and SHA256.
-Full sync and real Android compilation have not been performed; the current host has only about
-32GiB total disk capacity. The wrapper's conservative policy requires 150GiB free for output and 8GiB effective memory,
+Full sync completion and real Android compilation are not yet confirmed. Cloud attempts are running;
+the local host has only about 32GiB total disk capacity. The wrapper's conservative policy requires 150GiB free for output and 8GiB effective memory,
 separate from source storage; these are project checks, not official minimum requirements.
 See the Japanese-first [source build guide](docs/source-build.ja.md). Offline wrapper tests use fake
 build commands and do not demonstrate Android compilation or device compatibility.
@@ -71,6 +71,8 @@ The device-specific `device/benesse/ctz` skeleton is explicitly disabled until h
 the separate generic GSI source recipe is experimental. The first cloud systemimage attempt failed
 without a saved image or stage report; full sync and compilation are not confirmed.
 The next attempt streams logs and stops before its time/disk budget is exhausted to preserve reports.
+When an attempt ends, a changed build recipe can queue one follow-up attempt on main automatically.
+An unchanged recipe or an existing attempt for that commit does not trigger another build.
 The optional manifest checks out project notes/tools at `vendor/suiram/ctz-rom`, not as a working device tree.
 GMS/vendor binaries are not redistributed. Play operation and certification are not guaranteed.
 Android 10 is old and does not provide current security updates.

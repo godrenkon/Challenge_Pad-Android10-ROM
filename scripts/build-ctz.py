@@ -18,7 +18,7 @@ GIB = 1024 ** 3
 MIN_FREE = 150 * GIB
 MIN_MEMORY = 8 * GIB
 SOURCE_PATCH_PATHS = {"device/phh/treble": {
-    "base.mk", "base.mk.ctz-original", "AndroidProducts.mk",
+    "base.mk", "base.mk.ctz-original", "system.prop", "system.prop.ctz-original", "AndroidProducts.mk",
     "AndroidProducts.mk.ctz-original", "suiram_ctz10.mk"}}
 BUILD_COMMAND = ('set -eo pipefail\n'
                  'source build/envsetup.sh\n'

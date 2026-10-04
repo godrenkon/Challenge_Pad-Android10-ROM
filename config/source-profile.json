@@ -11,6 +11,7 @@
   "requiredFiles": {
     "device/phh/treble/generate.sh": "574281542e12280a65842dc4fe4ac4249c777157",
     "device/phh/treble/base.mk": "cad14e4da9a4b924c67779254cbc2b7a9967d63b",
+    "device/phh/treble/system.prop": "3dbe6df482aaca7bdaa8bea7f03d3c2c2a06527c",
     "device/phh/treble/base-pre.mk": "6a317e42e7553069aaa31fb5cb565462105cda7e",
     "device/phh/treble/phhgsi_arm64_ab/BoardConfig.mk": "1f6f532ef79ada0f0718087669736ac7274a60fd",
     "build/make/core/Makefile": "f180ef71095d63dc94f631b2235ff00fd4ea8882",
@@ -23,6 +24,9 @@
   "securityEdits": [
     {"before": "\tro.adb.secure=0 \\\n", "after": "\tro.adb.secure=1 \\\n"},
     {"before": "\tpersist.sys.usb.config=adb \\\n", "after": "\tpersist.sys.usb.config=mtp \\\n"}
+  ],
+  "systemPropertyEdits": [
+    {"before": "ro.adb.secure=0\n", "after": "ro.adb.secure=1\n"}
   ],
   "note": "Component commits were selected from historical branch history before v222 publication. They are not asserted to reproduce the v222 binary bit-for-bit. The integrated tag/commit recipe is manifest/ctz-android10.xml; full local commit capture and an actual Android build remain pending."
 }

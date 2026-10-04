@@ -24,8 +24,10 @@ class SourceTest(unittest.TestCase):
                               b"\tpersist.sys.usb.config=adb \\\n"
                               b"\tro.logd.auditd=true\n")
         self.files = {}
+        self.system_original = b"ro.adb.secure=0\nro.sys.sdcardfs=0\n# synthetic offline fixture\n"
         for relative in self.profile["requiredFiles"]:
-            data = self.base_original if relative == MODULE.BASE else b"# synthetic reviewed fixture\n"
+            data = {MODULE.BASE: self.base_original, MODULE.SYSTEM_PROP: self.system_original}.get(
+                relative, b"# synthetic reviewed fixture\n")
             self.write(relative, data)
             self.files[relative] = data
             self.profile["requiredFiles"][relative] = MODULE.git_blob(data)
@@ -73,6 +75,9 @@ class SourceTest(unittest.TestCase):
         self.assertIn(b"persist.sys.usb.config=mtp", base)
         self.assertNotIn(b"ro.adb.secure=0", base)
         self.assertEqual((self.root / (MODULE.BASE + ".ctz-original")).read_bytes(), self.base_original)
+        self.assertEqual((self.root / MODULE.SYSTEM_PROP).read_bytes(),
+                         self.system_original.replace(b"ro.adb.secure=0", b"ro.adb.secure=1"))
+        self.assertEqual((self.root / (MODULE.SYSTEM_PROP + ".ctz-original")).read_bytes(), self.system_original)
         registry = (self.root / MODULE.REGISTRY).read_bytes()
         self.assertTrue(registry.startswith(self.registry))
         self.assertEqual((self.root / (MODULE.REGISTRY + ".ctz-original")).read_bytes(), self.registry)
@@ -88,6 +93,28 @@ class SourceTest(unittest.TestCase):
         self.write(MODULE.BASE, self.base_original.replace(b"ro.adb.secure=0", b"ro.adb.secure=1"))
         before = self.snapshot()
         with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_unknown_system_properties_refused_before_any_write(self):
+        self.write(MODULE.SYSTEM_PROP, self.system_original + b"ro.product.model=unexpected\n")
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_interrupted_install_between_property_files_can_complete(self):
+        self.write(MODULE.BASE, self.base_original.replace(b"ro.adb.secure=0", b"ro.adb.secure=1")
+                   .replace(b"persist.sys.usb.config=adb", b"persist.sys.usb.config=mtp"))
+        self.write(MODULE.BASE + ".ctz-original", self.base_original)
+        self.apply()
+        self.assertIn(b"ro.adb.secure=1\n", (self.root / MODULE.SYSTEM_PROP).read_bytes())
+        self.assertEqual(self.apply(), [])
+
+    def test_missing_second_property_validation_refused(self):
+        del self.profile["requiredFiles"][MODULE.SYSTEM_PROP]
+        before = self.snapshot()
+        with self.assertRaisesRegex(ValueError, 'both ADB property inputs'):
             self.apply()
         self.assertEqual(before, self.snapshot())
 

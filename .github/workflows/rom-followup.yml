@@ -1,0 +1,30 @@
+name: Queue updated ROM recipe
+
+on:
+  workflow_run:
+    workflows: [Compile Android 10 systemimage]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: queue-updated-rom-recipe
+  cancel-in-progress: false
+
+jobs:
+  queue:
+    if: github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const result = await require('./scripts/queue-updated-rom-build.cjs')({ github, context, core });
+            core.info(JSON.stringify(result));

@@ -49,3 +49,13 @@ system.img生成に成功しても、実測パーティション容量、AVB条�
 ログ保存stepは未実行、artifactは0件、jobログの取得はBlobNotFoundでした。
 全同期完了・コンパイル開始・system.img生成は確認できず、停止原因は未特定です。
 この結果を受けて、実行中ログ表示と容量・時間の監視を追加して再試行します。
+
+再試行中に、PHHの `system.prop` にADB認証無効の設定が残る問題を確認しました。
+`base.mk` と `system.prop` の両方を修正し、上流10ファイルの実データへの適用を確認しています。
+すでに開始済みのrunへ後からソース差分を注入しません。
+`Queue updated ROM recipe` は本体run終了時に、そのcommitと最新mainのビルド入力blobを比較します。
+入力が変わり、そのmain commitに本体ビルドの試行がまだなければ、修正版の本体ビルドを
+`workflow_dispatch` で1回開始します。資料だけの更新・同じ入力・試行済みcommitでは開始しません。
+キャンセルされたrunからも自動開始しません。
+比較する入力は `scripts/queue-updated-rom-build.cjs` の `INPUTS` に列挙しています。
+このworkflowの `actions: write` は本体workflowの開始に使い、端末操作やリリース公開は行いません。

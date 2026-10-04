@@ -10,6 +10,7 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "device/phh/treble/base.mk"
+SYSTEM_PROP = "device/phh/treble/system.prop"
 REGISTRY = "device/phh/treble/AndroidProducts.mk"
 BLOCK = ("# BEGIN SUIRAM CTZ10 PRODUCT\n"
          "PRODUCT_MAKEFILES += $(LOCAL_DIR)/suiram_ctz10.mk\n"
@@ -51,7 +52,7 @@ def security_versions(data, edits, expected_blob):
         else:
             raise ValueError("Unexpected security settings; refusing a speculative patch")
     if len(set(states)) != 1 or git_blob(before) != expected_blob:
-        raise ValueError("base.mk differs from reviewed original or exact installed patch")
+        raise ValueError("Property source differs from reviewed original or exact installed patch")
     return before, after
 
 
@@ -64,13 +65,14 @@ def make_plan(source_root, profile=None):
     if profile is None:
         profile = json.loads((ROOT / "config/source-profile.json").read_text(encoding="utf-8"))
     observed = {}
-    base_before = base_after = None
+    patched = {}
+    property_inputs = {BASE: "securityEdits", SYSTEM_PROP: "systemPropertyEdits"}
     for relative, expected in profile["requiredFiles"].items():
         path = safe_path(root, relative)
         data = path.read_bytes()
         observed[relative] = data
-        if relative == BASE:
-            base_before, base_after = security_versions(data, profile["securityEdits"], expected)
+        if relative in property_inputs:
+            patched[relative] = security_versions(data, profile[property_inputs[relative]], expected)
         elif git_blob(data) != expected:
             raise ValueError("Unreviewed source file: " + relative)
     for relative in profile["additionalRequiredPaths"]:
@@ -78,8 +80,8 @@ def make_plan(source_root, profile=None):
         if not path.is_file():
             raise ValueError("Missing build dependency: " + relative)
         observed[relative] = path.read_bytes()
-    if base_before is None:
-        raise ValueError("Profile did not validate the security patch input")
+    if set(patched) != set(property_inputs):
+        raise ValueError("Profile did not validate both ADB property inputs")
 
     changes = []
     def propose(relative, desired, replace=False):
@@ -92,7 +94,8 @@ def make_plan(source_root, profile=None):
         changes.append({"path": relative, "before": current, "after": desired})
 
     # Backups are immutable. All validation occurs before the first write.
-    propose(BASE + ".ctz-original", base_before)
+    for relative, (before, _) in patched.items():
+        propose(relative + ".ctz-original", before)
     propose("vendor/suiram/ctz/ctz_locale.mk", (ROOT / "gsi/ctz_locale.mk").read_bytes())
     propose("device/phh/treble/suiram_ctz10.mk", (ROOT / "gsi/suiram_ctz10.mk").read_bytes())
 
@@ -120,7 +123,8 @@ def make_plan(source_root, profile=None):
         propose(REGISTRY + ".ctz-original", registry)
         separator = "" if not registry_text or registry_text.endswith("\n") else "\n"
         propose(REGISTRY, (registry_text + separator + BLOCK).encode("utf-8"), replace=True)
-    propose(BASE, base_after, replace=True)
+    for relative, (_, after) in patched.items():
+        propose(relative, after, replace=True)
     return root, observed, changes
 
 
