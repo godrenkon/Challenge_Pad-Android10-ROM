@@ -68,7 +68,9 @@ Stock backup/restore, partition geometry, AVB policy, panel variation and real-d
 `flashReady` is always false. A 1GB SD card is not assumed large enough for an expanded image.
 
 The device-specific `device/benesse/ctz` skeleton is explicitly disabled until hardware facts are verified;
-the separate generic GSI source recipe is experimental and has not been compiled.
+the separate generic GSI source recipe is experimental. The first cloud systemimage attempt failed
+without a saved image or stage report; full sync and compilation are not confirmed.
+The next attempt streams logs and stops before its time/disk budget is exhausted to preserve reports.
 The optional manifest checks out project notes/tools at `vendor/suiram/ctz-rom`, not as a working device tree.
 GMS/vendor binaries are not redistributed. Play operation and certification are not guaranteed.
 Android 10 is old and does not provide current security updates.

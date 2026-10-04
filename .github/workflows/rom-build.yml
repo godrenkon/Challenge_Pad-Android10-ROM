@@ -40,7 +40,8 @@ jobs:
           ln -s "$RUNNER_TEMP/ctz-repo-launcher/repo" "$RUNNER_TEMP/ctz-bin/repo"
           echo "$RUNNER_TEMP/ctz-bin" >> "$GITHUB_PATH"
       - name: Sync all fixed sources and compile the ROM system image
-        run: python3 scripts/run-github-rom-build.py "$RUNNER_TEMP/ctz-rom"
+        timeout-minutes: 330
+        run: python3 -u scripts/run-github-rom-build.py "$RUNNER_TEMP/ctz-rom"
       - name: Gather stage logs and build receipts
         if: always()
         run: |

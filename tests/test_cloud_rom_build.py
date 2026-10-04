@@ -54,7 +54,7 @@ class CloudBuildTests(unittest.TestCase):
                 patch.object(CLOUD.shutil, 'which', return_value='/fixture/repo'), \
                 patch.object(CLOUD.FLOW, 'run_pipeline', return_value={'fixture': True}) as run, \
                 redirect_stdout(io.StringIO()):
-            self.assertEqual(CLOUD.main([str(self.workspace)]), 0)
+            self.assertEqual(CLOUD.main(['--worker', str(self.workspace)]), 0)
             self.assertIs(run.call_args.kwargs['perform'], CLOUD.cloud_stage)
             self.assertEqual(run.call_args.kwargs['jobs'], 2)
 
@@ -68,6 +68,64 @@ class CloudBuildTests(unittest.TestCase):
             self.assertEqual(argv[argv.index('-g') + 1], 'all')
             self.assertIn('--depth=1', argv)
             self.assertIn('--clone-filter=blob:none', argv)
+
+    def test_supervisor_returns_real_worker_failure(self):
+        with redirect_stdout(io.StringIO()):
+            code = CLOUD.supervise([sys.executable, '-c', 'raise SystemExit(7)'], self.workspace,
+                                   interval=0.01)
+        self.assertEqual(code, 7)
+
+    def test_public_entry_uses_supervisor_and_preserves_worker_status(self):
+        report = {'blockers': [], 'freeOutputBytes': CLOUD.SOURCE_ATTEMPT_FREE}
+        with self.env(), patch.object(CLOUD.FLOW.BUILD, 'host_report', return_value=report), \
+                patch.object(CLOUD.shutil, 'which', return_value='/fixture/repo'), \
+                patch.object(CLOUD, 'supervise', return_value=7) as supervise, \
+                redirect_stdout(io.StringIO()):
+            self.assertEqual(CLOUD.main([str(self.workspace)]), 7)
+            self.assertEqual(supervise.call_args.args[0][-2:], ['--worker', str(self.workspace)])
+
+    def test_budget_stops_a_running_process_group(self):
+        marker = self.root / 'late-child-output'
+        child = 'import time,pathlib; time.sleep(1); pathlib.Path(' + repr(str(marker)) + ').touch()'
+        parent = 'import subprocess,sys,time; subprocess.Popen([sys.executable,"-c",' + repr(child) + ']); time.sleep(5)'
+        with redirect_stdout(io.StringIO()), self.assertRaisesRegex(ValueError, 'time budget'):
+            CLOUD.supervise([sys.executable, '-c', parent], self.workspace, budget=0.15, interval=0.01)
+        # Make a surviving descendant observable, not just the leader's exit code.
+        import time
+        time.sleep(1.1)
+        self.assertFalse(marker.exists())
+
+    def test_disk_reserve_stops_before_runner_is_full(self):
+        low_disk = type('Disk', (), {'free': CLOUD.REPORT_RESERVE_FREE - 1})()
+        with patch.object(CLOUD.shutil, 'disk_usage', return_value=low_disk), \
+                redirect_stdout(io.StringIO()), self.assertRaisesRegex(ValueError, 'disk exhaustion'):
+            CLOUD.supervise([sys.executable, '-c', 'import time; time.sleep(5)'], self.workspace,
+                             interval=0.01)
+
+    def test_streams_compiler_log_incrementally(self):
+        log = self.workspace / 'records/build-attempt-5/build.log'
+        log.parent.mkdir(parents=True)
+        log.write_bytes(b'compiler first\n')
+        offsets = {}
+        output = io.StringIO()
+        with redirect_stdout(output):
+            CLOUD.follow_logs(self.workspace, offsets)
+            with log.open('ab') as stream:
+                stream.write(b'compiler error\n')
+            CLOUD.follow_logs(self.workspace, offsets)
+            CLOUD.follow_logs(self.workspace, offsets)
+        self.assertEqual(output.getvalue().count('compiler first'), 1)
+        self.assertEqual(output.getvalue().count('compiler error'), 1)
+        self.assertEqual(log.read_bytes(), b'compiler first\ncompiler error\n')
+
+    def test_sync_jobs_do_not_increase_compiler_jobs(self):
+        context = {'source': self.root, 'records': self.root, 'jobs': 2}
+        with patch.object(CLOUD.FLOW, 'perform_stage') as perform:
+            CLOUD.cloud_stage('sync', context, {}, io.BytesIO())
+            self.assertEqual(perform.call_args.args[1]['jobs'], 4)
+            CLOUD.cloud_stage('build', context, {}, io.BytesIO())
+            self.assertEqual(perform.call_args.args[1]['jobs'], 2)
+        self.assertEqual(context['jobs'], 2)
 
 
 if __name__ == '__main__':
