@@ -3,7 +3,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const queue = require('../scripts/queue-updated-rom-build.cjs');
 
-function fixture({ changed = true, runs = [], sameHead = false, fork = false, moving = false } = {}) {
+function fixture({ changed = true, runs = [], sameHead = false, fork = false, moving = false,
+                   equivalentHeads = [] } = {}) {
   const before = '1'.repeat(40), after = sameHead ? before : '2'.repeat(40);
   const dispatched = [];
   let reads = 0;
@@ -11,11 +12,13 @@ function fixture({ changed = true, runs = [], sameHead = false, fork = false, mo
     rest: {
       git: { getRef: async () => ({ data: { object: { sha: moving && reads++ ? '3'.repeat(40) : after } } }) },
       repos: { getContent: async ({ path, ref }) => ({ data: {
-        type: 'file', sha: changed && path === 'config/source-profile.json' && ref === after ? 'b'.repeat(40) : 'a'.repeat(40),
+        type: 'file', sha: changed && path === 'config/source-profile.json' &&
+                          (ref === after || equivalentHeads.includes(ref)) ? 'b'.repeat(40) : 'a'.repeat(40),
       } }) },
       actions: { listWorkflowRuns: async () => {}, createWorkflowDispatch: async args => { dispatched.push(args); } },
     },
-    paginate: async () => runs,
+    paginate: async () => runs.map(candidate => ({ head_branch: 'main',
+      head_repository: { full_name: 'owner/rom' }, ...candidate })),
   };
   return { args: { github, core: { notice: () => {} }, context: {
     repo: { owner: 'owner', repo: 'rom' }, payload: { workflow_run: {
@@ -45,6 +48,42 @@ test('an existing attempt on the current recipe prevents duplicate builds', asyn
     assert.equal((await queue(f.args)).status, 'already-attempted');
     assert.equal(f.dispatched.length, 0);
   }
+});
+test('an identical recipe on another commit prevents a duplicate after docs move main', async () => {
+  const matching = '3'.repeat(40);
+  for (const status of ['queued', 'in_progress', 'completed']) {
+    const f = fixture({ equivalentHeads: [matching], runs: [{ id: 123, head_sha: matching, status }] });
+    const result = await queue(f.args);
+    assert.equal(result.status, 'already-attempted-recipe');
+    assert.equal(result.matchingCommit, matching);
+    assert.equal(result.matchingRun, 123);
+    assert.equal(f.dispatched.length, 0);
+  }
+});
+test('an older different recipe does not block the corrected build', async () => {
+  const f = fixture({ runs: [{ head_sha: '3'.repeat(40), status: 'completed' }] });
+  assert.equal((await queue(f.args)).status, 'dispatched');
+  assert.equal(f.dispatched.length, 1);
+});
+test('matching source-profile alone cannot hide a changed build input', async () => {
+  const matching = '3'.repeat(40);
+  const f = fixture({ equivalentHeads: [matching], runs: [{ head_sha: matching, status: 'in_progress' }] });
+  const read = f.args.github.rest.repos.getContent;
+  f.args.github.rest.repos.getContent = async args => {
+    if (args.ref === matching && args.path === 'manifest/ctz-android10.xml') {
+      return { data: { type: 'file', sha: 'c'.repeat(40) } };
+    }
+    return read(args);
+  };
+  assert.equal((await queue(f.args)).status, 'dispatched');
+  assert.equal(f.dispatched.length, 1);
+});
+test('an equivalent attempt from another repository cannot suppress the main build', async () => {
+  const matching = '3'.repeat(40);
+  const f = fixture({ equivalentHeads: [matching], runs: [{ head_sha: matching,
+    head_repository: { full_name: 'another/rom' }, status: 'completed' }] });
+  assert.equal((await queue(f.args)).status, 'dispatched');
+  assert.equal(f.dispatched.length, 1);
 });
 test('another repository cannot trigger this queue', async () => {
   const f = fixture({ fork: true });

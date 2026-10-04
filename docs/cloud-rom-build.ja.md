@@ -67,7 +67,7 @@ Ninjaは106,558工程中69,386工程を完了しています。これは所要�
 `base.mk` と `system.prop` の両方を修正し、上流10ファイルの実データへの適用を確認しています。
 すでに開始済みのrunへ後からソース差分を注入しません。
 `Queue updated ROM recipe` は本体run終了時に、そのcommitと最新mainのビルド入力blobを比較します。
-入力が変わり、そのmain commitに本体ビルドの試行がまだなければ、修正版の本体ビルドを
+入力が変わり、そのmain commitにも同一のビルド入力を持つ別commitにも本体ビルドの試行がまだなければ、修正版の本体ビルドを
 `workflow_dispatch` で1回開始します。資料だけの更新・同じ入力・試行済みcommitでは開始しません。
 キャンセルされたrunからも自動開始しません。
 比較する入力は `scripts/queue-updated-rom-build.cjs` の `INPUTS` に列挙しています。
@@ -77,5 +77,6 @@ Ninjaは106,558工程中69,386工程を完了しています。これは所要�
 concurrency設定追加前に開始した旧版runは、このgroupに含まれません。
 2026-10-04の起動要求は、修正済みのADB設定と並列数選択を含むmainの本体ビルドを開始するためのものです。
 これで開始したcommitの本体runがあれば、旧版完了後の自動再ビルド処理も重複して開始しません。
+資料更新でmainが進んでも、同じリポジトリのmainで既に試行した全ビルド入力のblob一致を確認して重複を防ぎます。
 手動の場合は、[本体workflow](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/workflows/rom-build.yml)
 の `Run workflow` から明示的に開始します。
