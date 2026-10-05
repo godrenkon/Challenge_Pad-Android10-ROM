@@ -3,6 +3,7 @@ name: Verify compiled Android 10 image contents
 on:
   workflow_run:
     workflows: ['Compile Android 10 systemimage']
+    branches: [main]
     types: [completed]
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
 
 jobs:
   verify:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
@@ -26,28 +27,25 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ runner.temp }}/ctz-image
-      - name: Verify compressed hash, unpack and check the built filesystem
+      - uses: actions/download-artifact@v4
+        with:
+          name: android10-systemimage-build-report
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/ctz-build-report
+      - name: Bind the image to its receipt and verify content and measured capacity
+        env:
+          CTZ_BUILD_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
-          cd "$RUNNER_TEMP/ctz-image"
-          python3 - <<'PY'
-          import hashlib, pathlib
-          root = pathlib.Path('.')
-          name = 'suiram-ctz-android10-system.img.xz'
-          lines = (root / 'SHA256SUMS').read_text().splitlines()
-          if len(lines) != 1 or lines[0][64:] != '  ' + name:
-              raise SystemExit('Unexpected checksum record')
-          expected = lines[0][:64]
-          digest = hashlib.sha256()
-          with (root / name).open('rb') as stream:
-              for block in iter(lambda: stream.read(1024 * 1024), b''):
-                  digest.update(block)
-          if digest.hexdigest() != expected:
-              raise SystemExit('Compressed system image checksum mismatch')
-          PY
-          xz --decompress --keep suiram-ctz-android10-system.img.xz
-          python3 "$GITHUB_WORKSPACE/scripts/verify-rom-content.py" suiram-ctz-android10-system.img --output "$RUNNER_TEMP/rom-content-verification.json"
+          python3 scripts/verify-built-artifact.py \
+            --image-dir "$RUNNER_TEMP/ctz-image" \
+            --build-report-dir "$RUNNER_TEMP/ctz-build-report" \
+            --work-dir "$RUNNER_TEMP/ctz-verified-image" \
+            --output "$RUNNER_TEMP/rom-content-verification.json" \
+            --partition-bytes 1413480448 \
+            --build-run-id "$CTZ_BUILD_RUN_ID"
       - uses: actions/upload-artifact@v4
-        if: success()
+        if: always()
         with:
           name: android10-systemimage-content-verification
           path: ${{ runner.temp }}/rom-content-verification.json
