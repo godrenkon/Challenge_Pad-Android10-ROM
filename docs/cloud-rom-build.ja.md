@@ -1,124 +1,124 @@
-# OS�{�̂̃N���E�h�r���h
+# OS本体のクラウドビルド
 
-## ���ԏ���Œ�~�����ꍇ�̃R���p�C���L���b�V��
+## 時間上限で停止した場合のコンパイルキャッシュ
 
-2026-10-04��run `37188392199` �́A4�����89%�܂Ői�݂܂������A315����
-�ēv���Z�X�̏���ɒB���Ē�~���܂����B�����C���[�W�͂���܂���B
-�W��GitHub-hosted runner�̓W���u�S�̂�6���Ԃ܂łȂ̂ŁA�P���ȏ�������ł͉������܂���B
+2026-10-04のrun `37188392199` は、4並列で89%まで進みましたが、315分の
+監督プロセスの上限に達して停止しました。完成イメージはありません。
+標準GitHub-hosted runnerはジョブ全体が6時間までなので、単純な上限延長では解決しません。
 
-���̈Ăł́A�����\�[�X�E���i�E�r���h�c�[���̑g�ݍ��킹�ɂ��āAccache��7G�ɐ������A
-���s���ɂ��ۑ����܂��B����̓L���b�V������v����C/C++�̃R���p�C�����ʂ��ė��p�ł��܂��B
-�ŏ��̎��s�͋�̃L���b�V������n�܂�A���ԓ��̊����͕ۏ؂��܂���BJava�A�����N�����A
-�C���[�W�����Ȃǂ͍Ď��s����܂��B�L���b�V���̗e�ʐݒ��GitHub�̊��������ύX���܂���B
+次の案では、同じソース・製品・ビルドツールの組み合わせについて、ccacheを7Gに制限し、
+失敗時にも保存します。次回はキャッシュが一致するC/C++のコンパイル結果を再利用できます。
+最初の試行は空のキャッシュから始まり、時間内の完成は保証しません。Java、リンク処理、
+イメージ生成などは再実行されます。キャッシュの容量設定はGitHubの既存上限を変更しません。
 
-�L���b�V���̃L�[�͈����������V�s�̃n�b�V�����܂߂܂��B���S��v���Ȃ���Γ���OS��
-`ctz-compiler-v1` �L���b�V�����畜�����Accache���R���p�C���̓��e�E�\�[�X�E�I�v�V��������
-�����������ʂ������ė��p���܂��B���i�p�b�P�[�W�ꗗ�̏C���ł�C/C++�̌��ʂ��ė��p���邽�߂ł��B
-�Â� `OUT_DIR` �⊮���C���[�W�͕������܂���B�ύX��̃L�[�����ۑ��Ȃ�A���s���ɂ��V�����L�[�ŕۑ����܂��B
-���̈Ă͐V����OUT_DIR�Ɗ����C���[�W�̌��؂��ێ����A�Â�system.img���ė��p���܂���B
+キャッシュのキーは引き続きレシピのハッシュを含めます。完全一致がなければ同じOSの
+`ctz-compiler-v1` キャッシュから復元し、ccacheがコンパイラの内容・ソース・オプション等を
+検査した結果だけを再利用します。製品パッケージ一覧の修正でもC/C++の結果を再利用するためです。
+古い `OUT_DIR` や完成イメージは復元しません。変更後のキーが未保存なら、失敗時にも新しいキーで保存します。
+この案は新しいOUT_DIRと完成イメージの検証を維持し、古いsystem.imgを再利用しません。
 
-�Q�l: [GitHub��6���Ԑ���](https://docs.github.com/en/actions/reference/limits)�A
-[�Œ肵��Android 10��ccache�ݒ�](https://github.com/phhusson/platform_build/blob/165f02822b54b3651fb388fc425ea9f3b416b496/core/ccache.mk)�B
+参考: [GitHubの6時間制限](https://docs.github.com/en/actions/reference/limits)、
+[固定したAndroid 10のccache設定](https://github.com/phhusson/platform_build/blob/165f02822b54b3651fb388fc425ea9f3b416b496/core/ccache.mk)。
 
-`Compile Android 10 systemimage` �́A753�v���W�F�N�g�̃\�[�X�𓯊����A�Scommit���L�^�A
-���i������K�p���� `lunch suiram_ctz10-userdebug` �� `m systemimage` �����s����H���ł��B
-���̓A�v���P�̂̃r���h��A�z�z�ς�GSI�̖��O�ύX�ł͂���܂���B
+`Compile Android 10 systemimage` は、753プロジェクトのソースを同期し、全commitを記録、
+製品差分を適用して `lunch suiram_ctz10-userdebug` → `m systemimage` を実行する工程です。
+入力アプリ単体のビルドや、配布済みGSIの名前変更ではありません。
 
-�������̖ڕW�́ANEXT�Œʏ�̃z�[����ʁE�ݒ�E�A�v���C���X�g�[�����g����Android 10�ł��B
-����boot/kernel/vendor���g���Asystem��PHH�nAOSP Android 10�֒u��������\���ł��B
-Google Play/GMS�͂��̐��i�Ɋ܂߂Ă��܂���B�[���ł̋N���ƑS�n�[�h�E�F�A����͖��m�F�ł��B
+完成時の目標は、NEXTで通常のホーム画面・設定・アプリインストールが使えるAndroid 10です。
+純正boot/kernel/vendorを使い、systemをPHH系AOSP Android 10へ置き換える構成です。
+Google Play/GMSはこの製品に含めていません。端末での起動と全ハードウェア動作は未確認です。
 
-## ���s���Ɛ��ʕ�
+## 実行環境と成果物
 
-GitHub-hosted Ubuntu 22.04�̎g���̂�runner�ŁA�r���h�ɕs�v�ȃv���C���X�g�[��SDK�����폜���A
-�z�X�g�ˑ��ƌŒ�Repo launcher��p�ӂ��܂��B���[�U�[��PC�ɂ͓K�p���܂���B
-�\�[�X�͌Œ�revision�̑S�v���W�F�N�g���A�󂢗����Eblob�x���擾�œ������܂��B
-�㗬manifest��Darwin�p�Ǝw�肳�ꂽMac�z�X�g��p9�v���W�F�N�g��������Linux�p753�v���W�F�N�g���擾���܂��B
-Linux��ARM/ARM64�R���p�C���A�t���[�����[�N�AVNDK 28�݊��R�[�h�͎c���܂��B�S�擾�Ώۂ�commit�ƍ����ێ����܂��B
-�[���֏������ޏ����͂���܂���B
+GitHub-hosted Ubuntu 22.04の使い捨てrunnerで、ビルドに不要なプリインストールSDK等を削除し、
+ホスト依存と固定Repo launcherを用意します。ユーザーのPCには適用しません。
+ソースは固定revisionの全プロジェクトを、浅い履歴・blob遅延取得で同期します。
+上流manifestでDarwin用と指定されたMacホスト専用9プロジェクトを除いたLinux用753プロジェクトを取得します。
+LinuxのARM/ARM64コンパイラ、フレームワーク、VNDK 28互換コードは残します。全取得対象のcommit照合を維持します。
+端末へ書き込む処理はありません。
 
-�\�[�X�ƒ��Ԑ������́Arunner�̐V�Ksparse�t�@�C����ɍ��Btrfs�֕ۑ����A
-`compress-force=zstd:3` �œ��߈��k���܂��B256GiB�͉��z�e�ʂł���A���e�ʂ𑝂₷�����ł͂���܂���B
-�擾�O�Ɏ��ۂ̃}�E���g�ƈ��kprobe���m�F���A�ʂ�CI�ł����z�X�g��̈��k��C�R���p�C�����������܂��B
-�Ď��ł͓���Btrfs�ƊO��runner�f�B�X�N�̋󂫂̏����������g���܂��B
-���k�������Ȃ��f�[�^�����邽�߁A����ł�������ۏ؂��܂���B
+ソースと中間生成物は、runnerの新規sparseファイル上に作るBtrfsへ保存し、
+`compress-force=zstd:3` で透過圧縮します。256GiBは仮想容量であり、実容量を増やす数字ではありません。
+取得前に実際のマウントと圧縮probeを確認し、別のCIでも実ホスト上の圧縮とCコンパイルを検査します。
+監視では内側Btrfsと外側runnerディスクの空きの小さい方を使います。
+圧縮が効かないデータもあるため、これでも完了を保証しません。
 
-�ʏ�̃��[�J���H����400GiB/150GiB�̕ێ�I�|���V�[���ێ����܂��B
-�N���E�h�̎��s�͓����O60GiB�E�r���h�O20GiB�E�L��RAM8GiB���J�n�����ɂ��܂��B
-����́u���̗e�ʂŕK����������v�Ƃ�������ł͂Ȃ��A�e�ʂ𑪂�Ȃ���i�߂�����ł��B
-GitHub-hosted runner�ł̂ݎg��������Ƃ��ĕ������A�e�ʕs����R���p�C�����s�͎��s�Ƃ��ċL�^���܂��B
-�\�[�X������4����ł��B�R���p�C���͎���������14GiB�ȏ�Ȃ���4����A
-���ꖢ���Ȃ���2����Ƃ��A����������o����CPU���𒴂��܂���BCPU�����s���Ȃ�1����ł��B
-2026-10-04�̎��s���O�Ŏ���������16,765,415,424 bytes���m�F�������߁A���̏C���łɂ��̑I����ǉ����܂����B
-�擾�E�R���p�C���̍H�����O�����s���ɂ��\�����A
-10�b���ƂɌo�ߎ��ԂƋ󂫗e�ʂ��L�^���܂��B�󂫗e��3GiB�����܂��͏�������315����
-Repo�E�R���p�C�����܂ޏ����O���[�v���~���A���O�ۑ��p�̎��ԂƗe�ʂ��c���܂��B
-GitHub���̖{��step����330���Ajob����355�����O�ɒ�~����݌v�ł��B
-�������m�F����O��ROM�����Ƃ͈����܂���B
+通常のローカル工程は400GiB/150GiBの保守的ポリシーを維持します。
+クラウドの試行は同期前60GiB・ビルド前20GiB・有効RAM8GiBを開始条件にします。
+これは「その容量で必ず完了する」という推定ではなく、容量を測りながら進める実験です。
+GitHub-hosted runnerでのみ使える入口として分離し、容量不足やコンパイル失敗は失敗として記録します。
+ソース同期は4並列です。コンパイルは実効メモリ14GiB以上なら上限4並列、
+それ未満なら上限2並列とし、いずれも検出したCPU数を超えません。CPU数が不明なら1並列です。
+2026-10-04の実行ログで実効メモリ16,765,415,424 bytesを確認したため、次の修正版にこの選択を追加しました。
+取得・コンパイルの工程ログを実行中にも表示し、
+10秒ごとに経過時間と空き容量を記録します。空き容量3GiB未満または処理時間315分で
+Repo・コンパイラを含む処理グループを停止し、ログ保存用の時間と容量を残します。
+GitHub側の本体step制限330分、job制限355分より前に停止する設計です。
+成功を確認する前にROM完成とは扱いません。
 
-�������� `android10-systemimage-engineering-untested` artifact�Ɉ��ksystem.img��SHA256������܂��B
-�����E�ʏ�̎��s�Ƃ� `android10-systemimage-build-report` �ɍH�����O�A���݂���source lock�E�r���hreceipt��ۑ����܂��B
-runner���̂̏����ȂǁA�㑱step�����s����Ȃ��ꍇ��artifact��ۑ��ł��܂���B
-�ǂ����30���ۑ��ł��B���ʕ���Git�̃\�[�X�c���[�֓���܂���B
+成功時は `android10-systemimage-engineering-untested` artifactに圧縮system.imgとSHA256が入ります。
+成功・通常の失敗とも `android10-systemimage-build-report` に工程ログ、存在するsource lock・ビルドreceiptを保存します。
+runner自体の消失など、後続stepが実行されない場合はartifactを保存できません。
+どちらも30日保存です。成果物はGitのソースツリーへ入れません。
 
-�{�̃r���h������́A�ʂ� `Verify compiled Android 10 image contents` �������œ����܂��B
-�������|�W�g���̐���run���琬�ʕ����擾���A���kSHA256�A�W�J�A�ǂݎ���pe2fsck�A
-Android 10 / SDK29 / ARM64 / ���i���AADB�F�؂�USB�ݒ�A��{�A�v���̃t�@�C�����݂��������܂��B
-Android 10��GSI�ɓ����� `product` / `product_services` �̃A�v���z�u�������Ώۂł��B
-VNDK 28�p��32bit ARM�E64bit AArch64�� `libstdc++.so` ��linker�ݒ�̑��݂��������܂��B
-����͈ꕔ�̌݊��t�@�C���̎��^�m�F�ł���A�Svendor���C�u�����EHAL�̓���ۏ؂ł͂���܂���B
-PHH�̊O�����o�[�X�f�o�b�O�p3�t�@�C�����܂܂�Ȃ����Ƃ��������܂��B
-Android 10��userdebug�㏈����USB�� `mtp` �� `adb` ��ǉ����邽�߁A`mtp,adb` ���������o�͂Ƃ��Ĉ����܂��B
-�A�v���̑��݊m�F�͎��s�e�X�g�ł͂���܂���B������������JSON���|�[�g��ۑ����܂��B
-����system�C���[�W�֏������݁Emount�͂��܂���B
+本体ビルド成功後は、別の `Verify compiled Android 10 image contents` が自動で動きます。
+同じリポジトリの成功runから成果物を取得し、圧縮SHA256、展開、読み取り専用e2fsck、
+Android 10 / SDK29 / ARM64 / 製品情報、ADB認証とUSB設定、基本アプリのファイル存在を検査します。
+Android 10のGSIに内包される `product` / `product_services` のアプリ配置も検査対象です。
+VNDK 28用の32bit ARM・64bit AArch64の `libstdc++.so` とlinker設定の存在も検査します。
+これは一部の互換ファイルの収録確認であり、全vendorライブラリ・HALの動作保証ではありません。
+PHHの外部リバースデバッグ用3ファイルが含まれないことも検査します。
+Android 10のuserdebug後処理はUSBの `mtp` に `adb` を追加するため、`mtp,adb` も正しい出力として扱います。
+アプリの存在確認は実行テストではありません。検査成功時はJSONレポートを保存します。
+元のsystemイメージへ書き込み・mountはしません。
 
-�\�[�X�擾�E�R���p�C���E�C���[�W�����ECTZ�ł̋N���͕ʂ̌��ؒi�K�ł��B
-system.img�����ɐ������Ă��A�����p�[�e�B�V�����e�ʁAAVB�����A������i�A���@���؂������܂�
-���������C���X�g�[���pROM�Ƃ��Ĕz�z���܂���B
+ソース取得・コンパイル・イメージ生成・CTZでの起動は別の検証段階です。
+system.img生成に成功しても、実測パーティション容量、AVB条件、復旧手段、実機検証が揃うまで
+完成したインストール用ROMとして配布しません。
 
-## ���ۂ̎��s�L�^
+## 実際の試行記録
 
-[����̖{�̃r���h](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37159364657)
-��2026-10-03 22:42 UTC�ɊJ�n���A2026-10-04 04:28 UTC�Ɏ��s�ŏI�����܂����B
-�z�X�g�����͐������܂������A�\�[�X�����E�R���p�C���̕���step���i�s���̂܂܏I�����Ă��܂��B
-���O�ۑ�step�͖����s�Aartifact��0���Ajob���O�̎擾��BlobNotFound�ł����B
-�S���������E�R���p�C���J�n�Esystem.img�����͊m�F�ł����A��~�����͖�����ł��B
-���̌��ʂ��󂯂āA���s�����O�\���Ɨe�ʁE���Ԃ̊Ď���ǉ����čĎ��s���܂��B
+[初回の本体ビルド](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37159364657)
+は2026-10-03 22:42 UTCに開始し、2026-10-04 04:28 UTCに失敗で終了しました。
+ホスト準備は成功しましたが、ソース同期・コンパイルの複合stepが進行中のまま終了しています。
+ログ保存stepは未実行、artifactは0件、jobログの取得はBlobNotFoundでした。
+全同期完了・コンパイル開始・system.img生成は確認できず、停止原因は未特定です。
+この結果を受けて、実行中ログ表示と容量・時間の監視を追加して再試行します。
 
-[�Ď��s](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37178988640)�́A
-�S�\�[�X�����Acommit�L�^�A���i�����̓K�p��ʉ߂��A2026-10-04 05:26:26 UTC�Ɏ��R���p�C�����J�n���܂����B
-���i�� `suiram_ctz10-userdebug`�AAndroid 10�ł��B07:53:58 UTC��Ninja 106,558�H����77,882�H����
-�󂫗e�ʂ�2,970,992,640 bytes�܂Ō��������߁A3GiB�̕ۑ��p�\�������Ē�~���܂����B
-����͏��v���Ԃ�ڐA�H���S�̂�73%�Ƃ����Ӗ��ł͂���܂���B
-�R���p�C���̃G���[�ł͂Ȃ��e�ʕs���ɂ�鐧���~�ł��B�r���h���|�[�g��884,848 bytes�Ŏ擾�ł��A
-11�t�@�C���̃��O�Elock�Ereceipt�E�ŏI�f�B�X�N�󋵂��m�F���܂����Bsystem.img�͐�������Ă��܂���B
-�\�[�X������̋󂫂�44,620,001,280 bytes�ł����B���̎������󂯁AMac�z�X�g��p�\�[�X�̏��O��
-���Ԑ��������܂ރr���h�̈�̓��߈��k��ǉ����܂����B
+[再試行](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37178988640)は、
+全ソース同期、commit記録、製品差分の適用を通過し、2026-10-04 05:26:26 UTCに実コンパイルを開始しました。
+製品は `suiram_ctz10-userdebug`、Android 10です。07:53:58 UTCにNinja 106,558工程中77,882工程で
+空き容量が2,970,992,640 bytesまで減ったため、3GiBの保存用予約を守って停止しました。
+これは所要時間や移植工程全体の73%という意味ではありません。
+コンパイラのエラーではなく容量不足による制御停止です。ビルドレポートは884,848 bytesで取得でき、
+11ファイルのログ・lock・receipt・最終ディスク状況を確認しました。system.imgは生成されていません。
+ソース同期後の空きは44,620,001,280 bytesでした。この実測を受け、Macホスト専用ソースの除外と
+中間生成物も含むビルド領域の透過圧縮を追加しました。
 
-���k�̈��[��runner����](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37188221202)��
-2026-10-04 08:15:32 UTC�ɐ������܂����BBtrfs�� `compress-force=zstd:3` mount�A
-9,437,184 bytes�̎����f�[�^��294,912 bytes��extents�ɂȂ邱�ƁA���̗̈��C�v���O�������R���p�C���E���s�ł��邱�Ƃ��m�F���Ă��܂��B
-���̎����f�[�^�̈��k����Android�\�[�X�⒆�Ԑ������̈��k���Ƃ݂͂Ȃ��܂���B
-��runner�̊O���̋󂫂�119,519,567,872 bytes�ł����B�\�[�X�EWindows PowerShell�ELinux PowerShell��CI���������Ă��܂��B
-Ubuntu 22.04�̈��k�m�F�c�[���� `btrfs-compsize` �p�b�P�[�W����񋟂���� `compsize` ���g���܂��B
-�C���ł�manifest commit `38974bf7945751ad9eb38e29420c329c07f56a89` ���擾���A
-�N���v�� `2026-10-04-disk-capacity-02` �ŋ��\����run��u�������܂��B
+圧縮領域の[実runner検証](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37188221202)は
+2026-10-04 08:15:32 UTCに成功しました。Btrfsの `compress-force=zstd:3` mount、
+9,437,184 bytesの試験データが294,912 bytesのextentsになること、その領域でCプログラムをコンパイル・実行できることを確認しています。
+この試験データの圧縮率をAndroidソースや中間生成物の圧縮率とはみなしません。
+実runnerの外側の空きは119,519,567,872 bytesでした。ソース・Windows PowerShell・Linux PowerShellのCIも成功しています。
+Ubuntu 22.04の圧縮確認ツールは `btrfs-compsize` パッケージから提供される `compsize` を使います。
+修正版はmanifest commit `38974bf7945751ad9eb38e29420c329c07f56a89` を取得し、
+起動要求 `2026-10-04-disk-capacity-02` で旧構成のrunを置き換えます。
 
-�Ď��s���ɁAPHH�� `system.prop` ��ADB�F�ؖ����̐ݒ肪�c������m�F���܂����B
-`base.mk` �� `system.prop` �̗������C�����A�㗬10�t�@�C���̎��f�[�^�ւ̓K�p���m�F���Ă��܂��B
-���łɊJ�n�ς݂�run�֌ォ��\�[�X�����𒍓����܂���B
-`Queue updated ROM recipe` �͖{��run�I�����ɁA����commit�ƍŐVmain�̃r���h����blob���r���܂��B
-���͂��ς��A����main commit�ɂ�����̃r���h���͂�����commit�ɂ��{�̃r���h�̎��s���܂��Ȃ���΁A�C���ł̖{�̃r���h��
-`workflow_dispatch` ��1��J�n���܂��B���������̍X�V�E�������́E���s�ς�commit�ł͊J�n���܂���B
-�L�����Z�����ꂽrun����������J�n���܂���B
-��r������͂� `scripts/queue-updated-rom-build.cjs` �� `INPUTS` �ɗ񋓂��Ă��܂��B
-����workflow�� `actions: write` �͖{��workflow�̊J�n�Ɏg���A�[������⃊���[�X���J�͍s���܂���B
-�{��workflow�� `workflow_dispatch`�A�܂��� `.github/rom-build-request.json` �̖����I�ȋN���v���ŊJ�n���܂��B
-�ʏ�̃\�[�X�C��push�ł͊J�n���܂���B�V���������I�ȋN���v����concurrency group���̌Â��{��run�𒆎~���A�ŐV�̏C���łɒu�������܂��B
-����������push�ł͖{��run���J�n�E���~���܂���B
-concurrency�ݒ�ǉ��O�ɊJ�n��������run�́A����group�Ɋ܂܂�܂���B
-2026-10-04�̋N���v���́A�C���ς݂�ADB�ݒ�ƕ��񐔑I�����܂�main�̖{�̃r���h���J�n���邽�߂̂��̂ł��B
-����ŊJ�n����commit�̖{��run������΁A���Ŋ�����̎����ăr���h�������d�����ĊJ�n���܂���B
-�����X�V��main���i��ł��A�������|�W�g����main�Ŋ��Ɏ��s�����S�r���h���͂�blob��v���m�F���ďd����h���܂��B
-�蓮�̏ꍇ�́A[�{��workflow](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/workflows/rom-build.yml)
-�� `Run workflow` ���疾���I�ɊJ�n���܂��B
+再試行中に、PHHの `system.prop` にADB認証無効の設定が残る問題を確認しました。
+`base.mk` と `system.prop` の両方を修正し、上流10ファイルの実データへの適用を確認しています。
+すでに開始済みのrunへ後からソース差分を注入しません。
+`Queue updated ROM recipe` は本体run終了時に、そのcommitと最新mainのビルド入力blobを比較します。
+入力が変わり、そのmain commitにも同一のビルド入力を持つ別commitにも本体ビルドの試行がまだなければ、修正版の本体ビルドを
+`workflow_dispatch` で1回開始します。資料だけの更新・同じ入力・試行済みcommitでは開始しません。
+キャンセルされたrunからも自動開始しません。
+比較する入力は `scripts/queue-updated-rom-build.cjs` の `INPUTS` に列挙しています。
+このworkflowの `actions: write` は本体workflowの開始に使い、端末操作やリリース公開は行いません。
+本体workflowは `workflow_dispatch`、または `.github/rom-build-request.json` の明示的な起動要求で開始します。
+通常のソース修正pushでは開始しません。新しい明示的な起動要求はconcurrency group内の古い本体runを中止し、最新の修正版に置き換えます。
+資料だけのpushでは本体runを開始・中止しません。
+concurrency設定追加前に開始した旧版runは、このgroupに含まれません。
+2026-10-04の起動要求は、修正済みのADB設定と並列数選択を含むmainの本体ビルドを開始するためのものです。
+これで開始したcommitの本体runがあれば、旧版完了後の自動再ビルド処理も重複して開始しません。
+資料更新でmainが進んでも、同じリポジトリのmainで既に試行した全ビルド入力のblob一致を確認して重複を防ぎます。
+手動の場合は、[本体workflow](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/workflows/rom-build.yml)
+の `Run workflow` から明示的に開始します。
