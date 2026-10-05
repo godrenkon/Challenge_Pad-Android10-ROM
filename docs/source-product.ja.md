@@ -23,7 +23,7 @@ timezone、画面回転、タッチ、HAL、kernel、SELinux設定はこの差�
 ## 上流の固定範囲
 
 [source-profile.json](../config/source-profile.json) にAOSPタグ、PHH各コンポーネントのcommitと
-入力10ファイルのGit blob SHAを記録しています。v222公開時期に対応する履歴から選んだ
+入力11ファイルのGit blob SHAを記録しています。v222公開時期に対応する履歴から選んだ
 コンポーネントのスナップショットであり、**v222配布バイナリと完全一致するmanifestではありません**。
 SHA1は入力変更の検出用で、署名や配布物の真正性の証明ではありません。
 残りの依存を含む[統合manifestとcommit記録ツール](source-build.ja.md)も実装しました。
@@ -66,7 +66,7 @@ python3 /path/to/ctz-rom/scripts/prepare-gsi-source.py /path/to/android --apply
 ツールは全入力を検査してから、製品設定と登録を追加し、PHH共通 `base.mk` の2項目と
 `system.prop` のADB認証設定を変更し、PHHの外部リバースデバッグ用3ファイルのコピーを除外します。
 **これらの共通ファイルの変更は同じツリーの他のPHH製品にも影響します。既存作業ツリーと共有しないでください。**
-元のbase.mk・system.prop・AndroidProducts.mkは `.ctz-original` として保存します。
+元のbase.mk・system.prop・AndroidProducts.mk・overlay.mkは `.ctz-original` として保存します。
 生成後の内容検査は、この3ファイルが存在しないことも確認し、同名symlinkも拒否します。
 未知の入力・変更済み出力・競合バックアップ・symlinkを拒否し、同じ状態で再実行すると変更しません。
 I/O障害時の全ファイル一括ロールバックはありません。途中で失敗した場合は差分とバックアップを
@@ -83,6 +83,19 @@ m -j4 systemimage
 
 これは成功確認済みのビルド手順ではありません。コンパイル完了の証拠も成果物もまだありません。
 この経路では `generate.sh` を実行しません。必要な製品登録は適用ツールが追加します。
+
+## CTZで使わないQualcomm補助アプリ
+
+2026-10-05の[キャッシュ利用ビルド](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37318904117)は
+Ninja 97%で `QtiAudio` のJavaコンパイルに失敗しました。固定された上流の生成コードは
+Android 10のクラスパスにない `android.hidl.base.V1_0` や `IHwBinder.FLAG_ONEWAY` を参照しています。
+このアプリはQualcommの無線・通話音声HALとOnePlus6のスイッチ用で、MT8168のCTZには使用しません。
+確認した[上流Service.java](https://github.com/phhusson/vendor_hardware_overlay/blob/7293fa02e43ce63f07b95dc44d7ab6aec262407e/Qualcomm/QtiAudio/src/me/phh/qti/audio/Service.java)に基づき、
+`vendor/hardware_overlay/overlay.mk` の製品パッケージ一覧からこのアプリだけを除きます。
+同ファイルのGit blob SHAと元のブロックを検査し、原本を保存します。
+MediaTek向けのoverlayや共通のTreble補助アプリは引き続き含めます。
+この変更も専用ソースツリーの他のPHH製品に影響するため、そのツリーを他端末のビルドと共有しないでください。
+実機の音声動作はROM完成後の検証事項です。
 
 ## 容量とリリースの条件
 

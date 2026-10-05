@@ -50,9 +50,9 @@ def security_versions(data, edits, expected_blob):
             states.append("installed")
             before = before.replace(new, old, 1)
         else:
-            raise ValueError("Unexpected security settings; refusing a speculative patch")
+            raise ValueError("Unexpected reviewed source edits; refusing a speculative patch")
     if len(set(states)) != 1 or git_blob(before) != expected_blob:
-        raise ValueError("Property source differs from reviewed original or exact installed patch")
+        raise ValueError("Source differs from reviewed original or exact installed patch")
     return before, after
 
 
@@ -66,13 +66,17 @@ def make_plan(source_root, profile=None):
         profile = json.loads((ROOT / "config/source-profile.json").read_text(encoding="utf-8"))
     observed = {}
     patched = {}
-    property_inputs = {BASE: "securityEdits", SYSTEM_PROP: "systemPropertyEdits"}
+    property_inputs = {BASE: profile["securityEdits"], SYSTEM_PROP: profile["systemPropertyEdits"]}
+    build_inputs = profile.get("buildEdits", {})
+    if set(build_inputs) & set(property_inputs):
+        raise ValueError("Build edits cannot replace ADB property edits")
+    patch_inputs = {**property_inputs, **build_inputs}
     for relative, expected in profile["requiredFiles"].items():
         path = safe_path(root, relative)
         data = path.read_bytes()
         observed[relative] = data
-        if relative in property_inputs:
-            patched[relative] = security_versions(data, profile[property_inputs[relative]], expected)
+        if relative in patch_inputs:
+            patched[relative] = security_versions(data, patch_inputs[relative], expected)
         elif git_blob(data) != expected:
             raise ValueError("Unreviewed source file: " + relative)
     for relative in profile["additionalRequiredPaths"]:
@@ -80,8 +84,10 @@ def make_plan(source_root, profile=None):
         if not path.is_file():
             raise ValueError("Missing build dependency: " + relative)
         observed[relative] = path.read_bytes()
-    if set(patched) != set(property_inputs):
+    if not set(property_inputs).issubset(patched):
         raise ValueError("Profile did not validate both ADB property inputs")
+    if set(patched) != set(patch_inputs):
+        raise ValueError("Profile did not validate every reviewed build edit")
 
     changes = []
     def propose(relative, desired, replace=False):

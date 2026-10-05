@@ -40,12 +40,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bc bison btrfs-progs btrfs-compsize build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush python3 rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
-      - name: Restore compiler results from the same recipe
+      - name: Restore compiler results with content-checked reuse
         id: compiler-cache
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/ctz-compiler-cache
           key: ctz-compiler-v1-${{ runner.os }}-${{ hashFiles('manifest/ctz-android10.xml', 'config/source-profile.json', 'scripts/build-ctz.py', 'scripts/prepare-gsi-source.py', 'gsi/*.mk') }}
+          restore-keys: |
+            ctz-compiler-v1-${{ runner.os }}-
       - name: Set compiler cache capacity
         run: |
           mkdir -p "$RUNNER_TEMP/ctz-compiler-cache"

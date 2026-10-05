@@ -18,7 +18,8 @@
     "build/make/core/version_defaults.mk": "9f64081379fa2d7994f10ea946e58a4264e71416",
     "build/make/tools/buildinfo.sh": "24ac663f209dedf3fdc2ee8cd0a4ebc662947f4d",
     "build/make/target/product/aosp_arm64_ab.mk": "f707a39dd24c46c7ffa29ce7c2f04a18f174b3c2",
-    "vendor/vndk/vndk.mk": "9499f02ecd9c31eddf9377037d0a7dbd6c527eab"
+    "vendor/vndk/vndk.mk": "9499f02ecd9c31eddf9377037d0a7dbd6c527eab",
+    "vendor/hardware_overlay/overlay.mk": "e761f192b6f9333d8ac70f6bea76c8129b8c5364"
   },
   "additionalRequiredPaths": [],
   "securityEdits": [
@@ -32,5 +33,13 @@
   "systemPropertyEdits": [
     {"before": "ro.adb.secure=0\n", "after": "ro.adb.secure=1\n"}
   ],
+  "buildEdits": {
+    "vendor/hardware_overlay/overlay.mk": [
+      {
+        "before": "PRODUCT_PACKAGES += \\\n\tHardwareOverlayPicker \\\n\tQtiAudio \\\n\tTrebleApp \\\n",
+        "after": "# CTZ: Qualcomm radio-audio helper is unused on MT8168.\nPRODUCT_PACKAGES += \\\n\tHardwareOverlayPicker \\\n\tTrebleApp \\\n"
+      }
+    ]
+  },
   "note": "Component commits were selected from historical branch history before v222 publication. They are not asserted to reproduce the v222 binary bit-for-bit. The integrated tag/commit recipe is manifest/ctz-android10.xml; full local commit capture and an actual Android build remain pending."
 }
