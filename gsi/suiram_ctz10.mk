@@ -17,4 +17,11 @@ PRODUCT_CHARACTERISTICS := tablet
 
 # Deliberately do not add phh-su, me.phh.superuser or GApps.
 # userdebug still has development capabilities; this is NOT a certified release.
-# No stock fingerprint spoof, kernel replacement, partition sizing or HAL override.
+# No stock fingerprint spoof, kernel replacement or HAL override.
+
+# Assign these in the root product after inheritance: inherited AOSP lists
+# otherwise put en_US and legacy VNDK 27 before the CTZ settings.
+PRODUCT_LOCALES := ja_JP en_US
+PRODUCT_EXTRA_VNDK_VERSIONS := 28
+# Preserve 32 MiB free filesystem headroom inside the measured partition.
+PRODUCT_SYSTEM_HEADROOM := 33554432
