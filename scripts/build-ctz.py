@@ -19,7 +19,8 @@ MIN_FREE = 150 * GIB
 MIN_MEMORY = 8 * GIB
 SOURCE_PATCH_PATHS = {"device/phh/treble": {
     "base.mk", "base.mk.ctz-original", "system.prop", "system.prop.ctz-original", "AndroidProducts.mk",
-    "AndroidProducts.mk.ctz-original", "suiram_ctz10.mk"}}
+    "AndroidProducts.mk.ctz-original", "suiram_ctz10.mk"},
+    "vendor/hardware_overlay": {"overlay.mk", "overlay.mk.ctz-original"}}
 BUILD_COMMAND = ('set -eo pipefail\n'
                  'source build/envsetup.sh\n'
                  'lunch suiram_ctz10-userdebug\n'
