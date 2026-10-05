@@ -29,6 +29,9 @@ class SourceTest(unittest.TestCase):
         for relative in self.profile["requiredFiles"]:
             data = {MODULE.BASE: self.base_original, MODULE.SYSTEM_PROP: self.system_original}.get(
                 relative, b"# synthetic reviewed fixture\n")
+            if relative in self.profile.get("buildEdits", {}):
+                data = self.profile["buildEdits"][relative][0]["before"].encode()
+                data += b"\ttreble-overlay-mtk-ims \\\n\tOtherPackage\n"
             self.write(relative, data)
             self.files[relative] = data
             self.profile["requiredFiles"][relative] = MODULE.git_blob(data)
@@ -90,6 +93,41 @@ class SourceTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.apply()
         self.assertEqual(before, self.snapshot())
+
+    def test_qti_omission_preserves_mtk_and_shared_helpers(self):
+        self.apply()
+        relative = "vendor/hardware_overlay/overlay.mk"
+        overlay = (self.root / relative).read_bytes()
+        self.assertNotIn(b"\tQtiAudio ", overlay)
+        for package in (b"HardwareOverlayPicker", b"TrebleApp", b"treble-overlay-mtk-ims", b"OtherPackage"):
+            self.assertIn(package, overlay)
+        self.assertEqual((self.root / (relative + ".ctz-original")).read_bytes(), self.files[relative])
+        self.assertEqual(self.apply(), [])
+
+    def test_modified_overlay_refused_before_writes(self):
+        relative = "vendor/hardware_overlay/overlay.mk"
+        self.write(relative, self.files[relative] + b"# unexpected change\n")
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    def test_missing_build_edit_validation_refused(self):
+        del self.profile["requiredFiles"]["vendor/hardware_overlay/overlay.mk"]
+        before = self.snapshot()
+        with self.assertRaisesRegex(ValueError, "every reviewed build edit"):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
+    @unittest.skipUnless(shutil.which("make"), "GNU Make needed for package expansion")
+    def test_effective_overlay_packages_preserved_without_qti(self):
+        self.apply()
+        makefile = ("include vendor/hardware_overlay/overlay.mk\nall:\n\t@echo $(PRODUCT_PACKAGES)\n")
+        result = subprocess.run(["make", "-f", "-", "--no-print-directory"], cwd=self.root,
+                                input=makefile, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip().split(),
+                         ["HardwareOverlayPicker", "TrebleApp", "treble-overlay-mtk-ims", "OtherPackage"])
 
     def test_partial_security_patch_refused(self):
         self.write(MODULE.BASE, self.base_original.replace(b"ro.adb.secure=0", b"ro.adb.secure=1"))
