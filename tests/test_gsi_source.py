@@ -72,6 +72,41 @@ class SourceTest(unittest.TestCase):
         self.assertEqual(self.apply(), [])
         self.assertEqual(after, self.snapshot())
 
+    def test_gsi_authentication_override_removed_and_original_preserved(self):
+        path = 'build/make/target/board/gsi_system.prop'
+        original = (self.root / path).read_bytes()
+        self.apply()
+        self.assertNotIn(b'ro.adb.secure=0', (self.root / path).read_bytes())
+        self.assertEqual((self.root / (path + '.ctz-original')).read_bytes(), original)
+
+    def test_system_partition_uses_actual_capacity(self):
+        self.apply()
+        board = (self.root / 'device/phh/treble/phhgsi_arm64_ab/BoardConfig.mk').read_text()
+        self.assertIn('BOARD_SYSTEMIMAGE_PARTITION_SIZE := 1413480448', board)
+        self.assertNotIn('2147483648', board)
+
+    def test_only_legacy_vndk_copy_entries_omitted(self):
+        self.apply()
+        for name in ['vndk32.mk', 'vndk64.mk']:
+            path = 'vendor/vndk/' + name
+            original = self.files[path].decode()
+            installed = (self.root / path).read_text()
+            kept = [line for line in original.splitlines() if 'vndk-28-' in line or 'vndk-29-' in line]
+            self.assertTrue(kept)
+            for line in kept:
+                self.assertIn(line, installed)
+            self.assertNotIn('vndk-26-', installed)
+            self.assertNotIn('vndk-27-', installed)
+            self.assertEqual((self.root / (path + '.ctz-original')).read_bytes(), self.files[path])
+
+    def test_unreviewed_gsi_property_input_rejected_before_writes(self):
+        path = 'build/make/target/board/gsi_system.prop'
+        self.write(path, (self.root / path).read_bytes() + b'ro.adb.secure=0\n')
+        before = self.snapshot()
+        with self.assertRaises(ValueError):
+            self.apply()
+        self.assertEqual(before, self.snapshot())
+
     def test_security_changes_and_backups(self):
         self.apply()
         base = (self.root / MODULE.BASE).read_bytes()
