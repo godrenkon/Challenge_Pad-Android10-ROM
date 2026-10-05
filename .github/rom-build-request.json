@@ -1,10 +1,16 @@
 {
   "schemaVersion": 1,
-  "requestId": "2026-10-04-compiler-cache-01",
-  "basedOn": "4fff04916b1d78e3ef725079c1e9537066605169",
-  "reason": "Retry the time-limited run with a bounded compiler cache that survives failure. A cold-cache run can still time out.",
+  "requestId": "2026-10-05-warm-compiler-cache-02",
+  "basedOn": "1f84341f62e277d074971e2d70b72106dfd2482f",
+  "reason": "Retry the same validated recipe using the 4,941,345,785-byte compiler cache successfully saved after the cold-cache attempt reached its 315-minute time budget at 78%.",
   "validationRun": 37210266820,
-  "previousRun": 37188392199,
+  "previousRun": 37210512498,
   "bootTested": false,
-  "flashReady": false
+  "flashReady": false,
+  "compilerCache": {
+    "id": 8490506953,
+    "key": "ctz-compiler-v1-Linux-59c2d4101feb6949807d5b869149858c2ee80e34ef7ab9cf6dbdd20bc56d0f6f",
+    "savedBytes": 4941345785,
+    "savedAtUtc": "2026-10-04T20:04:30Z"
+  }
 }
