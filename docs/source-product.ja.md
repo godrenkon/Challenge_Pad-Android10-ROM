@@ -1,78 +1,78 @@
-# ���{��W����Android 10 GSI�\�[�X�ݒ�
+# 日本語標準のAndroid 10 GSIソース設定
 
-**�\�[�X���������������i�K�ł��Bsystem.img�̃R���p�C���A���@�N���A�������݂͖����؂ł��B**
-`download-base.cmd` ���擾�������GSI�ɂ́A���̍����͓K�p����܂���B
+**ソース差分を実装した段階です。system.imgのコンパイル、実機起動、書き込みは未検証です。**
+`download-base.cmd` が取得する既存GSIには、この差分は適用されません。
 
-## �������e
+## 実装内容
 
-| ���� | �\�[�X�ݒ� | ���m�F���� |
+| 項目 | ソース設定 | 未確認事項 |
 | --- | --- | --- |
-| �������� | `PRODUCT_LOCALES := ja_JP en_US`�B�����l�͓��{��A�p����I�����Ɏc�� | ���@�̏����ݒ��ʁB����userdata�̌���͋����ύX���Ȃ� |
-| �r���h�Ώ� | `suiram_ctz10-userdebug`�APHH arm64/SAR vanilla/N�h�� | �SAndroid�c���[�ł̃R���p�C���E�N�� |
-| �{�[�h | `phhgsi_arm64_ab` ��ێ� | CTZ�̕����X���b�g�\�����Ӗ����Ȃ� |
-| ADB | PHH�� `base.mk` �� `system.prop` �̗����� `ro.adb.secure=0` �� `1` �ɕύX | stock vendor���̃v���p�e�B���܂ގ��@�̍ŏI���� |
-| USB�����\�� | PHH�� `persist.sys.usb.config=adb` �� `mtp` �ɕύX | ���@�ł�MTP���� |
-| �O�����o�[�X�f�o�b�O | PHH��dbclient�E���o�[�X�f�o�b�O�pscript�Einit�ݒ�̃R�s�[�����O | �W��ADB�̎��@����BOS�S�̂̈��S����ۏ؂�����̂ł͂Ȃ� |
-| �ǉ��A�v�� | `phh-su`�E`me.phh.superuser`�EGApps��ǉ����Ȃ� | userdebug���̂͊J���p�B���S���E�F�؂͕ۏ؂��Ȃ� |
+| 初期言語 | `PRODUCT_LOCALES := ja_JP en_US`。初期値は日本語、英語も選択肢に残す | 実機の初期設定画面。既存userdataの言語は強制変更しない |
+| ビルド対象 | `suiram_ctz10-userdebug`、PHH arm64/SAR vanilla/N派生 | 全Androidツリーでのコンパイル・起動 |
+| ボード | `phhgsi_arm64_ab` を保持 | CTZの物理スロット構成を意味しない |
+| ADB | PHHの `base.mk` と `system.prop` の両方で `ro.adb.secure=0` を `1` に変更 | stock vendor側のプロパティを含む実機の最終挙動 |
+| USB初期構成 | PHHの `persist.sys.usb.config=adb` を `mtp` に変更 | 実機でのMTP動作 |
+| 外部リバースデバッグ | PHHのdbclient・リバースデバッグ用script・init設定のコピーを除外 | 標準ADBの実機動作。OS全体の安全性を保証するものではない |
+| 追加アプリ | `phh-su`・`me.phh.superuser`・GAppsを追加しない | userdebug自体は開発用。安全性・認証は保証しない |
 
-���{��UI�Ɠ��{��L�[�{�[�h�͕ʂł��BAndroid 10�c���[�Ŋm�F�ł��Ă��Ȃ�IME���W���[����
-�����Œǉ������A���{����͂̑g�ݍ��݂Ɠ���m�F�͎c��ƂƂ��܂��B
-[nicoWnnG�̕�APK�r���h](japanese-ime.ja.md)���������܂������A���i�� `PRODUCT_PACKAGES` �ւ͂܂��ǉ����Ă��܂���B
-timezone�A��ʉ�]�A�^�b�`�AHAL�Akernel�ASELinux�ݒ�͂��̍����ŕύX���܂���B
+日本語UIと日本語キーボードは別です。Android 10ツリーで確認できていないIMEモジュールを
+推測で追加せず、日本語入力の組み込みと動作確認は残作業とします。
+[nicoWnnGの別APKビルド](japanese-ime.ja.md)を実装しましたが、製品の `PRODUCT_PACKAGES` へはまだ追加していません。
+timezone、画面回転、タッチ、HAL、kernel、SELinux設定はこの差分で変更しません。
 
-## �㗬�̌Œ�͈�
+## 上流の固定範囲
 
-[source-profile.json](../config/source-profile.json) ��AOSP�^�O�APHH�e�R���|�[�l���g��commit��
-����11�t�@�C����Git blob SHA���L�^���Ă��܂��Bv222���J�����ɑΉ����闚������I��
-�R���|�[�l���g�̃X�i�b�v�V���b�g�ł���A**v222�z�z�o�C�i���Ɗ��S��v����manifest�ł͂���܂���**�B
-SHA1�͓��͕ύX�̌��o�p�ŁA������z�z���̐^�����̏ؖ��ł͂���܂���B
-�c��̈ˑ����܂�[����manifest��commit�L�^�c�[��](source-build.ja.md)���������܂����B
-���ۂ̑S�����Ecommit�L�^�E���C�Z���X�m�F�EAndroid�r���h�͂܂��K�v�ł��B
+[source-profile.json](../config/source-profile.json) にAOSPタグ、PHH各コンポーネントのcommitと
+入力11ファイルのGit blob SHAを記録しています。v222公開時期に対応する履歴から選んだ
+コンポーネントのスナップショットであり、**v222配布バイナリと完全一致するmanifestではありません**。
+SHA1は入力変更の検出用で、署名や配布物の真正性の証明ではありません。
+残りの依存を含む[統合manifestとcommit記録ツール](source-build.ja.md)も実装しました。
+実際の全同期・commit記録・ライセンス確認・Androidビルドはまだ必要です。
 
-�m�F�����㗬�F
+確認した上流：
 
 - [v222 build.sh](https://github.com/phhusson/treble_experimentations/blob/4a5cabb317a69ccf646c5742f88d3345a9ccbecf/build.sh)
-- [PHH�̐��i�������V�s](https://github.com/phhusson/device_phh_treble/blob/64289357288a82fc9771c013b54f9e0833689599/generate.sh)
-- [PHH��Android build](https://github.com/phhusson/platform_build/tree/165f02822b54b3651fb388fc425ea9f3b416b496)
+- [PHHの製品生成レシピ](https://github.com/phhusson/device_phh_treble/blob/64289357288a82fc9771c013b54f9e0833689599/generate.sh)
+- [PHH版Android build](https://github.com/phhusson/platform_build/tree/165f02822b54b3651fb388fc425ea9f3b416b496)
 - [PHH VNDK](https://github.com/phhusson/vendor_vndk/tree/cea8e7093616005e68fd527a2acd81f9f2af30c3)
-- [PHH manifest�̗���](https://github.com/phhusson/treble_manifest/tree/b66f014948ac17c700fc4eb746c3b56b381611c2)
+- [PHH manifestの履歴](https://github.com/phhusson/treble_manifest/tree/b66f014948ac17c700fc4eb746c3b56b381611c2)
 - [PHH system.prop](https://github.com/phhusson/device_phh_treble/blob/64289357288a82fc9771c013b54f9e0833689599/system.prop)
-- [Android 10�̋N�����v���p�e�B�ǂݍ���](https://github.com/phhusson/platform_system_core/blob/67841c06d5c532acfd83cab9b38ab9c909ef5a2a/init/property_service.cpp)
+- [Android 10の起動時プロパティ読み込み](https://github.com/phhusson/platform_system_core/blob/67841c06d5c532acfd83cab9b38ab9c909ef5a2a/init/property_service.cpp)
 
-`board-base.mk` ��PHH�� `system.prop` �� `TARGET_SYSTEM_PROP` �ɒǉ����܂��B
-Android build�͂����system�� `build.prop` �֊܂߂܂��BAndroid 10��init�ł͌ォ��ǂ�
-`build.prop` �̒l�� `prop.default` �̒l���㏑���ł��邽�߁A`base.mk` �����̏C���ł�
-ADB�F�؂���т��ėL���ɂł��܂���B2�t�@�C���𓯂��l�֏C�����A������̌����ł�
-system���̎����l���m�F���܂��Bstock vendor�̒l�͂��̃\�[�X�����ł͊m�F�ł��܂���B
+`board-base.mk` はPHHの `system.prop` を `TARGET_SYSTEM_PROP` に追加します。
+Android buildはこれをsystemの `build.prop` へ含めます。Android 10のinitでは後から読む
+`build.prop` の値が `prop.default` の値を上書きできるため、`base.mk` だけの修正では
+ADB認証を一貫して有効にできません。2ファイルを同じ値へ修正し、生成後の検査でも
+system側の実効値を確認します。stock vendorの値はこのソース検査では確認できません。
 
-�㗬 `build.sh` ��reset/clean/force-sync���������s���܂���B
-���̓K�p�R�}���h�̓\�[�X�����A�_�E�����[�h�AAndroid�r���h�A�[����������s���܂���B
-�S�����E�r���h�͕ʂ̍H�������i�[��GitHub Actions�ōs���܂��B
+上流 `build.sh` のreset/clean/force-syncを自動実行しません。
+この適用コマンドはソース同期、ダウンロード、Androidビルド、端末操作を実行しません。
+全同期・ビルドは別の工程ランナーとGitHub Actionsで行います。
 
-## ��p�\�[�X�f�B���N�g���ւ̓K�p
+## 専用ソースディレクトリへの適用
 
-Linux��Python 3.9�ȏ��z�肵�܂��B�܂��ʃf�B���N�g���ɏ㗬Android 10�\�[�X���������A
-�S�ˑ����܂�manifest�̐��������m�F����K�v������܂��B[�����\�[�X�菇](source-build.ja.md)��
-�����ς݂ł����A�����E�r���h�����͖��m�F�ł��B�ȉ��� `/path/to/...` �͎��ۂ̏ꏊ�֒u�������Ă��������B
+LinuxとPython 3.9以上を想定します。まず別ディレクトリに上流Android 10ソースを準備し、
+全依存を含むmanifestの整合性を確認する必要があります。[統合ソース手順](source-build.ja.md)は
+実装済みですが、同期・ビルド成功は未確認です。以下の `/path/to/...` は実際の場所へ置き換えてください。
 
 ```sh
-# �f�t�H���g�͌����̂݁B�[���ɂ͉������Ȃ��B
+# デフォルトは検査のみ。端末には何もしない。
 python3 /path/to/ctz-rom/scripts/prepare-gsi-source.py /path/to/android
 
-# ������ʂ������͂Ɍ���A�����I�Ƀ\�[�X������K�p����B
+# 検査を通った入力に限り、明示的にソース差分を適用する。
 python3 /path/to/ctz-rom/scripts/prepare-gsi-source.py /path/to/android --apply
 ```
 
-�c�[���͑S���͂��������Ă���A���i�ݒ�Ɠo�^��ǉ����APHH���� `base.mk` ��2���ڂ�
-`system.prop` ��ADB�F�ؐݒ��ύX���APHH�̊O�����o�[�X�f�o�b�O�p3�t�@�C���̃R�s�[�����O���܂��B
-**�����̋��ʃt�@�C���̕ύX�͓����c���[�̑���PHH���i�ɂ��e�����܂��B������ƃc���[�Ƌ��L���Ȃ��ł��������B**
-����base.mk�Esystem.prop�EAndroidProducts.mk�Eoverlay.mk�� `.ctz-original` �Ƃ��ĕۑ����܂��B
-������̓��e�����́A����3�t�@�C�������݂��Ȃ����Ƃ��m�F���A����symlink�����ۂ��܂��B
-���m�̓��́E�ύX�ςݏo�́E�����o�b�N�A�b�v�Esymlink�����ۂ��A������ԂōĎ��s����ƕύX���܂���B
-I/O��Q���̑S�t�@�C���ꊇ���[���o�b�N�͂���܂���B�r���Ŏ��s�����ꍇ�͍����ƃo�b�N�A�b�v��
-�蓮�m�F���A�����ēK�p��o�b�N�A�b�v�폜�ŉ����؂�Ȃ��ł��������B
+ツールは全入力を検査してから、製品設定と登録を追加し、PHH共通 `base.mk` の2項目と
+`system.prop` のADB認証設定を変更し、PHHの外部リバースデバッグ用3ファイルのコピーを除外します。
+**これらの共通ファイルの変更は同じツリーの他のPHH製品にも影響します。既存作業ツリーと共有しないでください。**
+元のbase.mk・system.prop・AndroidProducts.mk・overlay.mkは `.ctz-original` として保存します。
+生成後の内容検査は、この3ファイルが存在しないことも確認し、同名symlinkも拒否します。
+未知の入力・変更済み出力・競合バックアップ・symlinkを拒否し、同じ状態で再実行すると変更しません。
+I/O障害時の全ファイル一括ロールバックはありません。途中で失敗した場合は差分とバックアップを
+手動確認し、自動再適用やバックアップ削除で押し切らないでください。
 
-���S�ȃ\�[�X�����������**�����؂̃r���h�Ώ�**�͎��̂Ƃ���ł��B
+完全なソースが揃った後の**未検証のビルド対象**は次のとおりです。
 
 ```sh
 cd /path/to/android
@@ -81,33 +81,33 @@ lunch suiram_ctz10-userdebug
 m -j4 systemimage
 ```
 
-����͐����m�F�ς݂̃r���h�菇�ł͂���܂���B�R���p�C�������̏؋������ʕ����܂�����܂���B
-���̌o�H�ł� `generate.sh` �����s���܂���B�K�v�Ȑ��i�o�^�͓K�p�c�[�����ǉ����܂��B
+これは成功確認済みのビルド手順ではありません。コンパイル完了の証拠も成果物もまだありません。
+この経路では `generate.sh` を実行しません。必要な製品登録は適用ツールが追加します。
 
-## CTZ�Ŏg��Ȃ�Qualcomm�⏕�A�v��
+## CTZで使わないQualcomm補助アプリ
 
-2026-10-05��[�L���b�V�����p�r���h](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37318904117)��
-Ninja 97%�� `QtiAudio` ��Java�R���p�C���Ɏ��s���܂����B�Œ肳�ꂽ�㗬�̐����R�[�h��
-Android 10�̃N���X�p�X�ɂȂ� `android.hidl.base.V1_0` �� `IHwBinder.FLAG_ONEWAY` ���Q�Ƃ��Ă��܂��B
-���̃A�v����Qualcomm�̖����E�ʘb����HAL��OnePlus6�̃X�C�b�`�p�ŁAMT8168��CTZ�ɂ͎g�p���܂���B
-�m�F����[�㗬Service.java](https://github.com/phhusson/vendor_hardware_overlay/blob/7293fa02e43ce63f07b95dc44d7ab6aec262407e/Qualcomm/QtiAudio/src/me/phh/qti/audio/Service.java)�Ɋ�Â��A
-`vendor/hardware_overlay/overlay.mk` �̐��i�p�b�P�[�W�ꗗ���炱�̃A�v�������������܂��B
-���t�@�C����Git blob SHA�ƌ��̃u���b�N���������A���{��ۑ����܂��B
-MediaTek������overlay�⋤�ʂ�Treble�⏕�A�v���͈��������܂߂܂��B
-���̕ύX����p�\�[�X�c���[�̑���PHH���i�ɉe�����邽�߁A���̃c���[�𑼒[���̃r���h�Ƌ��L���Ȃ��ł��������B
-���@�̉��������ROM������̌��؎����ł��B
+2026-10-05の[キャッシュ利用ビルド](https://github.com/godrenkon/Challenge_Pad-Android10-ROM/actions/runs/37318904117)は
+Ninja 97%で `QtiAudio` のJavaコンパイルに失敗しました。固定された上流の生成コードは
+Android 10のクラスパスにない `android.hidl.base.V1_0` や `IHwBinder.FLAG_ONEWAY` を参照しています。
+このアプリはQualcommの無線・通話音声HALとOnePlus6のスイッチ用で、MT8168のCTZには使用しません。
+確認した[上流Service.java](https://github.com/phhusson/vendor_hardware_overlay/blob/7293fa02e43ce63f07b95dc44d7ab6aec262407e/Qualcomm/QtiAudio/src/me/phh/qti/audio/Service.java)に基づき、
+`vendor/hardware_overlay/overlay.mk` の製品パッケージ一覧からこのアプリだけを除きます。
+同ファイルのGit blob SHAと元のブロックを検査し、原本を保存します。
+MediaTek向けのoverlayや共通のTreble補助アプリは引き続き含めます。
+この変更も専用ソースツリーの他のPHH製品に影響するため、そのツリーを他端末のビルドと共有しないでください。
+実機の音声動作はROM完成後の検証事項です。
 
-## �e�ʂƃ����[�X�̏���
+## 容量とリリースの条件
 
-�㗬��generic BoardConfig�ɂ�2GiB��system�T�C�Y�ݒ肪����܂����A�����CTZ�̎����e�ʂł͂���܂���B
-�����ł͕ύX�����A�����e�ʂƂ̈�v���m�F�����܂Ő����C���[�W���������߂�Ƃ͔��f���܂���B
-1GB��microSD�ɓW�J�ς݃C���[�W�����邱�Ƃ��O��ɂ��܂���B
-stock�ۑ��E�����EAVB�E�p�l�����فE�N�����O�ƑS�n�[�h�E�F�A���؂��K�v�ł��B
-�c�[���̏o�͂͏�� `flashReady: false`�A`fullAndroidBuildTested: false` �ł��B
+上流のgeneric BoardConfigには2GiBのsystemサイズ設定がありますが、これはCTZの実測容量ではありません。
+ここでは変更せず、実測容量との一致が確認されるまで生成イメージを書き込めるとは判断しません。
+1GBのmicroSDに展開済みイメージが入ることも前提にしません。
+stock保存・復旧・AVB・パネル差異・起動ログと全ハードウェア検証が必要です。
+ツールの出力は常に `flashReady: false`、`fullAndroidBuildTested: false` です。
 
-## ���͈ؔ�
+## 検証範囲
 
-�I�t���C���e�X�g�͌����A���ۏ����A�o�b�N�A�b�v�A��x�ڂ̓K�p�AMake���̓��{�ꏉ���l���m�F���܂��B
-Make�e�X�g�͊ȈՃn�[�l�X�ł���A�{����AOSP���i�p��������R���p�C�����Č����܂���B
-�J�����ɂ͌Œ肵���㗬10�t�@�C���̎��f�[�^�ł�CLI�̌����E�K�p�E�Ď��s���m�F���܂������A
-������S�\�[�X�r���h����@�e�X�g�ł͂���܂���B
+オフラインテストは検査、拒否条件、バックアップ、二度目の適用、Make式の日本語初期値を確認します。
+Makeテストは簡易ハーネスであり、本物のAOSP製品継承処理やコンパイルを再現しません。
+開発時には固定した上流10ファイルの実データでもCLIの検査・適用・再実行を確認しましたが、
+これも全ソースビルドや実機テストではありません。
