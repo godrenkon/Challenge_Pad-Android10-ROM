@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "requestId": "2026-10-06-omit-qti-audio-03",
-  "basedOn": "8da6948713671ce5b79c802ac26009304f1bf73d",
-  "reason": "Rebuild after verified MT8168 product patch omits unused QtiAudio, which failed at 97%. Restore prior C/C++ compiler results with content-checked ccache reuse.",
-  "validationRun": 37329393379,
-  "validatedHead": "2b803da036303ee07d171534bff188aac2eee0bc",
-  "previousRun": 37318904117,
-  "previousFailure": "QtiAudio Java HIDL API references; no system image produced",
+  "requestId": "2026-10-06-first-image-corrections-04",
+  "basedOn": "723f8b58eacdd831962532e91912e57714754441",
+  "reason": "Rebuild after verified first-image corrections: measured system partition capacity, preserve authenticated ADB, Japanese-first root product, and omit legacy VNDK 26/27 while retaining actual vendor VNDK 28 and framework VNDK 29.",
+  "validationRun": 37386270314,
+  "validatedHead": "cfaa02f25f8fab00400ec0086d1c41cbebf532f1",
+  "previousRun": 37329795720,
+  "previousImageStatus": "Produced and checksums matched; expanded image exceeded the measured partition, contained conflicting ADB authentication settings and selected en-US.",
+  "measuredSystemPartitionBytes": 1413480448,
   "bootTested": false,
   "flashReady": false,
   "compilerCache": {
     "restorePrefix": "ctz-compiler-v1-Linux-",
-    "priorCacheId": 8490506953,
-    "priorSavedBytes": 4941345785
+    "maxSize": "7G"
   }
 }
