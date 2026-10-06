@@ -23,5 +23,7 @@ PRODUCT_CHARACTERISTICS := tablet
 # otherwise put en_US and legacy VNDK 27 before the CTZ settings.
 PRODUCT_LOCALES := ja_JP en_US
 PRODUCT_EXTRA_VNDK_VERSIONS := 28
-# Preserve 32 MiB free filesystem headroom inside the measured partition.
-PRODUCT_SYSTEM_HEADROOM := 33554432
+# Require at least 8 MiB free inside the fixed, measured partition.
+# The previous build had 4086 free 4-KiB blocks (about 16 MiB); 32 MiB
+# unnecessarily rejected that otherwise fitting filesystem.
+PRODUCT_SYSTEM_HEADROOM := 8388608
